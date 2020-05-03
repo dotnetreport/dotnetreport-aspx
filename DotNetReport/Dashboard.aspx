@@ -4,18 +4,21 @@
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="body" runat="server">
     
-<div class="pull-left" data-bind="with: currentDashboard">
-    <h2 data-bind="text: name ? name : 'Dashboard'">Dashboard</h2>
-    <p data-bind="text: description"></p>
-</div>
+<div class="row">
+    <div class="col-8" data-bind="with: currentDashboard">
+        <h2 data-bind="text: name ? name : 'Dashboard'">Dashboard</h2>
+        <p data-bind="text: description"></p>
+    </div>
 
-<div class="form-inline" style="display: none;" data-bind="visible: dashboards().length > 0 ">
-    <div class="form-group pull-right">
-        <div class="control-group">
-            <label class="control-label">Switch Dashboard</label>
-            <select class="form-control" data-bind="options: dashboards, optionsText: 'name', optionsValue: 'id', value: selectDashboard"></select>
-            <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#add-dashboard-modal" title="Edit Dashboard Settings" data-bind="click: editDashboard">Edit</button>
-            <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#add-dashboard-modal" title="Add a New Dashboard" data-bind="click: newDashboard">Add</button>
+    <div class="col-4 right-align" style="display: none;" data-bind="visible: dashboards().length > 0 ">
+        <div class="row">
+
+            <label class="col">Switch Dashboard</label>
+            <select class="col form-control" data-bind="options: dashboards, optionsText: 'name', optionsValue: 'id', value: selectDashboard"></select>
+            <div class="col">
+                <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#add-dashboard-modal" title="Edit Dashboard Settings" data-bind="click: editDashboard">Edit</button>
+                <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#add-dashboard-modal" title="Add a New Dashboard" data-bind="click: newDashboard">Add</button>
+            </div>
         </div>
     </div>
 </div>
@@ -31,26 +34,26 @@
     <button class="btn btn-lg btn-primary" data-toggle="modal" data-target="#add-dashboard-modal"><i class="fa fa-dashboard"></i> Create a New Dashboard</button>
 </div>
 
-<div class="modal modal-fullscreen fade" id="add-dashboard-modal" role="dialog">
+<div class="modal modal-fullscreen" id="add-dashboard-modal" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content" data-bind="with: dashboard">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title"><span data-bind="text: Id() ? 'Edit' : 'Add'"></span> Dashboard</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
                 <div class="form-horizontal">
                     <div class="control-group">
-                        <div class="form-group">
+                        <div class="form-group row">
                             <label class="col-md-3 col-sm-3 control-label">Name</label>
                             <div class="col-md-6 col-sm-6">
-                                <input class="form-control text-box" data-val="true" data-val-required="Dashboard Name is required["" type="text" data-bind="value: Name" placeholder="Dashboard Name, ex Sales, Accounting" id="add-dash-name" />
+                                <input class="form-control text-box" style="width: 100%;" data-val="true" data-val-required="Dashboard Name is required." type="text" data-bind="value: Name" placeholder="Dashboard Name, ex Sales, Accounting" id="add-dash-name" />
                             </div>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group row">
                             <label class="col-md-3 col-sm-3 control-label">Description</label>
                             <div class="col-md-6 col-sm-6">
-                                <textarea class="form-control text-box" data-bind="value: Description" placeholder="Optional Description for the Dashboard">
+                                <textarea class="form-control text-box" style="width: 100%;" data-bind="value: Description" placeholder="Optional Description for the Dashboard">
                                 </textarea>
                             </div>
                         </div>
@@ -58,18 +61,18 @@
                 </div>
                 <hr />
                 <h5><span class="fa fa-paperclip"></span> Choose Reports for the Dashboard</h5>
-                <div data-bind="foreach: $parent.reportsAndFolders" class="panel panel-default panel-body" style="margin-left: 20px;">
-                    <div>
-                        <a class="btn btn-link btn-default" role="button" data-toggle="collapse" data-bind="attr: { href: '#folder-' + folderId }">
+                <div data-bind="foreach: $parent.reportsAndFolders" class="card" style="margin-left: 20px;">
+                    <div class="card-body">
+                        <a class="btn btn-link" role="button" data-toggle="collapse" data-bind="attr: {href: '#folder-' + folderId }">
                             <i class="fa fa-folder"></i>&nbsp;<span data-bind="text: folder"></span>
                         </a>
-                        <div class="collapse" data-bind="attr: { id: 'folder-' + folderId }">
+                        <div class="collapse" data-bind="attr: {id: 'folder-' + folderId }">
                             <ul class="list-group" data-bind="foreach: reports">
                                 <li class="list-group-item">
                                     <div class="checkbox">
                                         <label class="list-group-item-heading">
                                             <input type="checkbox" data-bind="checked: selected">
-                                            <span class="fa" data-bind="css: { 'fa-file': reportType == 'List', 'fa-th-list': reportType == 'Summary', 'fa-bar-chart': reportType == 'Bar', 'fa-pie-chart': reportType == 'Pie', 'fa-line-chart': reportType == 'Line', 'fa-globe': reportType == 'Map' }" style="font-size: 14pt; color: #808080"></span>
+                                            <span class="fa" data-bind="css: {'fa-file': reportType=='List', 'fa-th-list': reportType=='Summary', 'fa-bar-chart': reportType=='Bar', 'fa-pie-chart': reportType=='Pie',  'fa-line-chart': reportType=='Line', 'fa-globe': reportType =='Map'}" style="font-size: 14pt; color: #808080"></span>
                                             <span data-bind="text: reportName"></span>
                                         </label>
                                     </div>
@@ -81,7 +84,7 @@
                 </div>
                 <!-- ko if: $parent.adminMode -->
                 <hr />
-                <div data-bind="template: { name: 'manage-access-template' }"></div>
+                <div data-bind="template: {name: 'manage-access-template'}"></div>
                 <!-- /ko -->
             </div>
             <div class="modal-footer">
@@ -96,42 +99,42 @@
 
 <div class="grid-stack">
     <!-- ko foreach: reports -->
-    <div class="grid-stack-item" data-bind="attr: { 'data-gs-x': x, 'data-gs-y': y, 'data-gs-width': width, 'data-gs-height': height, 'data-gs-auto-position': true, 'data-gs-id': ReportID }">
+    <div class="grid-stack-item" data-bind="attr: {'data-gs-x': x, 'data-gs-y': y, 'data-gs-width': width, 'data-gs-height': height, 'data-gs-auto-position': true, 'data-gs-id': ReportID}">
 
-        <div class="panel" data-bind="attr: { class: 'panel ' + panelStyle + ' grid-stack-item-content' }" style="overflow-y: hidden;">
-            <div class="panel-heading panel-nocollapse">
+        <div class="card" data-bind="attr: {class: 'card ' + panelStyle + ' grid-stack-item-content'}" style="overflow-y: hidden;">
+            <div class="card-header">
                 <span data-bind="text: ReportName"></span>
                 <div class="pull-right">
                     <form action="/DotNetReport/ReportService.asmx/DownloadExcel" id="downloadExcel" method="post"> 
                     
                         <input type="hidden" id="reportSql" name="reportSql" data-bind="value: currentSql" />
                         <input type="hidden" id="connectKey" name="connectKey" data-bind="value: currentConnectKey" />
-                            <input type="hidden" id="reportName" name="reportName" data-bind="value: ReportName" />
-                            <button type="submit" class="btn btn-default btn-xs"><span class="fa fa-file-excel-o"></span></button>
+                        <input type="hidden" id="reportName" name="reportName" data-bind="value: ReportName" />
+                        <button type="submit" class="btn btn-secondary btn-sm"><span class="fa fa-file-excel-o"></span></button>
                     </form>
                 </div>
                 <!-- ko if: FlyFilters().length> 0-->
-                <button class="btn btn-default btn-xs pull-right" data-bind="click: toggleFlyFilters"><i class="fa fa-filter" title="Filter Report"></i></button>
+                <button class="btn btn-secondary btn-sm pull-right" data-bind="click: toggleFlyFilters"><i class="fa fa-filter" title="Filter Report"></i></button>
                 <!-- /ko -->
 
                 <a data-bind="attr: {href: '/DotNetReport/index.aspx?reportId=' + ReportID()}" class="btn btn-default btn-xs pull-right">
                     <i class="fa fa-pencil-square-o" title="Edit Report"></i>
                 </a>
             </div>
-            <div class="panel-body list-overflow-auto">
+            <div class="card-body list-overflow-auto">
                 <p data-bind="html: ReportDescription">
                 </p>
-                <div data-bind="template: { name: 'fly-filter-template' }, visible: showFlyFilters"></div>
+                <div data-bind="template: {name: 'fly-filter-template'}, visible: showFlyFilters"></div>
                 <div data-bind="with: ReportResult">
                     <div data-bind="template: 'report-template', data: $data"></div>
                 </div>
             </div>
-            <div class="panel-footer">
+            <div class="card-footer">
                 <div class="small" data-bind="with: pager">
                     <div class="form-group pull-left total-records">
                         <span data-bind="text: 'Total Records: ' + totalRecords()"></span><br />
                     </div>
-                    <div class="form-group pull-right" data-bind="if: pages() > 1">
+                    <div class="form-group pull-right" data-bind="if: pages()>1">
                         <div data-bind="template: 'pager-template', data: $data"></div>
                     </div>
                     <div class="clearfix"></div>

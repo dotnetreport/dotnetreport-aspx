@@ -359,7 +359,7 @@
                             </div>
                             <div data-bind="with: Field" class="col-xs-5">
                                 <div data-bind="if: $parent.Apply">
-                                    @Html.Partial("_reportFilter")
+                                    <div data-bind="template: 'report-filter', data: $data"></div>
                                 </div>
                             </div>
                         </div>

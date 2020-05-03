@@ -7,7 +7,11 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
+namespace ReportBuilder.Demo.WebForms.DotNetReport
+{
 
 
-public partial class Dashboard {
+    public partial class Dashboard
+    {
+    }
 }

@@ -79,7 +79,6 @@
     <Content Include="Content\font-awesome.min.css" />
     <Content Include="Content\img\report-icon.png" />
     <Content Include="Content\img\report-logo.png" />
-    <Content Include="Content\morris.css" />
     <Content Include="Content\themes\base\accordion.css" />
     <Content Include="Content\themes\base\all.css" />
     <Content Include="Content\themes\base\autocomplete.css" />
@@ -184,8 +183,6 @@
     <Content Include="Scripts\knockout.x-editable.min.js" />
     <Content Include="Scripts\lodash.js" />
     <Content Include="Scripts\lodash.min.js" />
-    <Content Include="Scripts\morris.min.js" />
-    <Content Include="Scripts\raphael.min.js" />
     <Content Include="Scripts\toastr.js" />
     <Content Include="Scripts\toastr.min.js" />
     <Content Include="Web.config" />
