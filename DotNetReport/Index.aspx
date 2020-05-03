@@ -562,7 +562,8 @@
                                 <select class="form-control" style="width: 100%;" data-bind="options: fieldFilter, value: $parent.Operator" required></select>
                             </div>
                         </td>
-                        <td data-bind="with: Field">@Html.Partial("_reportFilter")
+                        <td data-bind="with: Field">
+                            <div data-bind="template: 'report-filter', data: $data"></div>
                         </td>
                         <td>
                             <button class="btn btn-sm btn-secondary" data-bind="click: $parent.RemoveFilter">Remove</button>
