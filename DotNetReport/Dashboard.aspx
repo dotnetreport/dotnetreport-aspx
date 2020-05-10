@@ -16,8 +16,8 @@
             <label class="col">Switch Dashboard</label>
             <select class="col form-control" data-bind="options: dashboards, optionsText: 'name', optionsValue: 'id', value: selectDashboard"></select>
             <div class="col">
-                <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#add-dashboard-modal" title="Edit Dashboard Settings" data-bind="click: editDashboard">Edit</button>
-                <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#add-dashboard-modal" title="Add a New Dashboard" data-bind="click: newDashboard">Add</button>
+                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#add-dashboard-modal" title="Edit Dashboard Settings" data-bind="click: editDashboard">Edit</button>
+                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#add-dashboard-modal" title="Add a New Dashboard" data-bind="click: newDashboard">Add</button>
             </div>
         </div>
     </div>
@@ -31,7 +31,7 @@
 </div>
 <div class="centered" style="display: none;" data-bind="visible: dashboards().length == 0 ">
     No Dashboards yet. Click below to Start<br />
-    <button class="btn btn-lg btn-primary" data-toggle="modal" data-target="#add-dashboard-modal"><i class="fa fa-dashboard"></i> Create a New Dashboard</button>
+    <button type="button" class="btn btn-lg btn-primary" data-toggle="modal" data-target="#add-dashboard-modal"><i class="fa fa-dashboard"></i> Create a New Dashboard</button>
 </div>
 
 <div class="modal modal-fullscreen" id="add-dashboard-modal" role="dialog">
@@ -114,7 +114,7 @@
                     </form>
                 </div>
                 <!-- ko if: FlyFilters().length> 0-->
-                <button class="btn btn-secondary btn-sm pull-right" data-bind="click: toggleFlyFilters"><i class="fa fa-filter" title="Filter Report"></i></button>
+                <button type="button" class="btn btn-secondary btn-sm pull-right" data-bind="click: toggleFlyFilters"><i class="fa fa-filter" title="Filter Report"></i></button>
                 <!-- /ko -->
 
                 <a data-bind="attr: {href: '/DotNetReport/index.aspx?reportId=' + ReportID()}" class="btn btn-default btn-xs pull-right">

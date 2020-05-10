@@ -416,12 +416,13 @@
                     </div>
                     <!-- /ko -->
                     <hr />
-                    <h5><span class="fa fa-hourglass"></span>Choose Schedule</h5>
+                   <%-- Scheduling not supported by Web Forms
+                       <h5><span class="fa fa-hourglass"></span>Choose Schedule</h5>
 
                     <div style="padding: 10px 10px">
                         <div data-bind="template: {name: 'report-schedule'}"></div>
                     </div>
-                    <hr />
+                    <hr />--%>
 
                     <div>
                         <div class="form-group row">
