@@ -6,8 +6,9 @@ using System.Configuration;
 using System.Data;
 using System.Data.OleDb;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace ReportBuilder.Demo.WebForms.DotNetReport
 {
@@ -31,25 +32,28 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
             string databaseApiKey = Request.QueryString["databaseApiKey"];
             var connect = GetConnection(databaseApiKey);
             var tables = new List<TableViewModel>();
-
+            var procedures = new List<TableViewModel>();
             tables.AddRange(await GetTables("TABLE", connect.AccountApiKey, connect.DatabaseApiKey));
             tables.AddRange(await GetTables("VIEW", connect.AccountApiKey, connect.DatabaseApiKey));
-
+            procedures.AddRange(await GetApiProcs(connect.AccountApiKey, connect.DatabaseApiKey));
             Model = new ManageViewModel
             {
+                ApiUrl = connect.ApiUrl,
                 AccountApiKey = connect.AccountApiKey,
                 DatabaseApiKey = connect.DatabaseApiKey,
-                Tables = tables
+                Tables = tables,
+                Procedures = procedures
             };
 
         }
 
         #region "Private Methods"
 
-        private ConnectViewModel GetConnection(string databaseApiKey)
+        public static ConnectViewModel GetConnection(string databaseApiKey)
         {
             return new ConnectViewModel
             {
+                ApiUrl = ConfigurationManager.AppSettings["dotNetReport.apiUrl"],
                 AccountApiKey = ConfigurationManager.AppSettings["dotNetReport.accountApiToken"],
                 DatabaseApiKey = string.IsNullOrEmpty(databaseApiKey) ? ConfigurationManager.AppSettings["dotNetReport.dataconnectApiToken"] : databaseApiKey
             };
@@ -59,25 +63,16 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
         {
             using (var client = new HttpClient())
             {
-                var response = await client.GetAsync(String.Format("{0}/ReportApi/GetDataConnectKey?account={1}&dataConnect={2}", ConfigurationManager.AppSettings["dotNetReport.apiUrl"], connect.AccountApiKey, connect.DatabaseApiKey));
+                var response = await client.GetAsync(String.Format("{0}/ReportApi/GetDataConnectKey?account={1}&dataConnect={2}", connect.ApiUrl, connect.AccountApiKey, connect.DatabaseApiKey));
 
                 response.EnsureSuccessStatusCode();
 
                 var content = await response.Content.ReadAsStringAsync();
-                var connString = ConfigurationManager.ConnectionStrings[content.Replace("\"", "")].ConnectionString;
-                connString = connString.Replace("Trusted_Connection=True", "");
-
-                if (!connString.ToLower().StartsWith("provider"))
-                {
-                    connString = "Provider=sqloledb;" + connString;
-                }
-
-                return connString;
+                return DotNetReportHelper.GetConnectionString(content.Replace("\"", ""));
             }
-
         }
 
-        private FieldTypes ConvertToJetDataType(int oleDbDataType)
+        public static FieldTypes ConvertToJetDataType(int oleDbDataType)
         {
             switch (((OleDbType)oleDbDataType))
             {
@@ -144,19 +139,17 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
             using (var client = new HttpClient())
             {
                 var response = await client.GetAsync(String.Format("{0}/ReportApi/GetTables?account={1}&dataConnect={2}&clientId=", ConfigurationManager.AppSettings["dotNetReport.apiUrl"], accountKey, dataConnectKey));
-
                 response.EnsureSuccessStatusCode();
-
                 var content = await response.Content.ReadAsStringAsync();
-
                 dynamic values = JsonConvert.DeserializeObject<dynamic>(content);
-
                 var tables = new List<TableViewModel>();
                 foreach (var item in values)
                 {
                     tables.Add(new TableViewModel
                     {
                         Id = item.tableId,
+                        SchemaName = item.schemaName,
+                        AccountIdField = item.accountIdField,
                         TableName = item.tableDbName,
                         DisplayName = item.tableName,
                         AllowedRoles = item.tableRoles.ToObject<List<string>>()
@@ -194,14 +187,23 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
                         DisplayOrder = item.fieldOrder,
                         ForeignKeyField = item.foreignKey,
                         ForeignValueField = item.foreignValue,
+                        ForeignJoin = item.foreignJoin,
                         ForeignTable = item.foreignTable,
                         DoNotDisplay = item.doNotDisplay,
-                        AllowedRoles = item.columnRoles.ToObject<List<string>>()
-                    };
+                        ForceFilter = item.forceFilter,
+                        ForceFilterForTable = item.forceFilterForTable,
+                        RestrictedDateRange = item.restrictedDateRange,
+                        RestrictedEndDate = item.restrictedEndDate,
+                        RestrictedStartDate = item.restrictedStartDate,
+                        AllowedRoles = item.columnRoles.ToObject<List<string>>(),
 
-                    JoinTypes join;
-                    Enum.TryParse<JoinTypes>((string)item.foreignJoin, out join);
-                    column.ForeignJoin = join;
+                        ForeignParentKey = item.hasForeignParentKey,
+                        ForeignParentApplyTo = item.foreignParentApplyTo,
+                        ForeignParentKeyField = item.foreignParentKey,
+                        ForeignParentValueField = item.foreignParentValue,
+                        ForeignParentTable = item.foreignParentTable,
+                        ForeignParentRequired = item.foreignParentRequired,
+                    };
 
                     columns.Add(column);
                 }
@@ -228,12 +230,12 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
                 conn.Open();
 
                 // Get the Tables
-                var SchemaTable = conn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, new Object[] { null, null, null, type });
+                var schemaTable = conn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, new Object[] { null, null, null, type });
 
                 // Store the table names in the class scoped array list of table names
-                for (int i = 0; i < SchemaTable.Rows.Count; i++)
+                for (int i = 0; i < schemaTable.Rows.Count; i++)
                 {
-                    var tableName = SchemaTable.Rows[i].ItemArray[2].ToString();
+                    var tableName = schemaTable.Rows[i].ItemArray[2].ToString();
 
                     // see if this table is already in database
                     var matchTable = currentTables.FirstOrDefault(x => x.TableName.ToLower() == tableName.ToLower());
@@ -245,6 +247,7 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
                     var table = new TableViewModel
                     {
                         Id = matchTable != null ? matchTable.Id : 0,
+                        SchemaName = matchTable != null ? matchTable.SchemaName : schemaTable.Rows[i]["TABLE_SCHEMA"].ToString(),
                         TableName = matchTable != null ? matchTable.TableName : tableName,
                         DisplayName = matchTable != null ? matchTable.DisplayName : tableName,
                         IsView = type == "VIEW",
@@ -279,6 +282,17 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
                             column.Id = matchColumn.Id;
                             column.DoNotDisplay = matchColumn.DoNotDisplay;
                             column.DisplayOrder = matchColumn.DisplayOrder;
+                            column.ForceFilter = matchColumn.ForceFilter;
+                            column.ForceFilterForTable = matchColumn.ForceFilterForTable;
+                            column.RestrictedDateRange = matchColumn.RestrictedDateRange;
+                            column.RestrictedStartDate = matchColumn.RestrictedStartDate;
+                            column.RestrictedEndDate = matchColumn.RestrictedEndDate;
+                            column.ForeignParentKey = matchColumn.ForeignParentKey;
+                            column.ForeignParentApplyTo = matchColumn.ForeignParentApplyTo;
+                            column.ForeignParentTable = matchColumn.ForeignParentTable;
+                            column.ForeignParentKeyField = matchColumn.ForeignParentKeyField;
+                            column.ForeignParentValueField = matchColumn.ForeignParentValueField;
+                            column.ForeignParentRequired = matchColumn.ForeignParentRequired;
 
                             column.Selected = true;
                         }
@@ -295,6 +309,74 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
 
 
             return tables;
+        }
+
+        private async Task<List<TableViewModel>> GetApiProcs(string accountKey, string dataConnectKey)
+        {
+            using (var client = new HttpClient())
+            {
+                var response = await client.GetAsync(String.Format("{0}/ReportApi/GetProcedures?account={1}&dataConnect={2}&clientId=", ConfigurationManager.AppSettings["dotNetReport.apiUrl"], accountKey, dataConnectKey));
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
+                var tables = JsonConvert.DeserializeObject<List<TableViewModel>>(content);
+
+                return tables;
+            }
+        }
+
+        public static Type GetType(FieldTypes type)
+        {
+            switch (type)
+            {
+                case FieldTypes.Boolean:
+                    return typeof(bool);
+                case FieldTypes.DateTime:
+                    return typeof(DateTime);
+                case FieldTypes.Double:
+                    return typeof(Double);
+                case FieldTypes.Int:
+                    return typeof(int);
+                case FieldTypes.Money:
+                    return typeof(decimal);
+                case FieldTypes.Varchar:
+                    return typeof(string);
+                default:
+                    return typeof(string);
+
+            }
+        }
+
+        private async Task<DataTable> GetStoreProcedureResult(TableViewModel model, string accountKey = null, string dataConnectKey = null)
+        {
+            DataTable dt = new DataTable();
+            var connString = await GetConnectionString(GetConnection(dataConnectKey));
+            using (OleDbConnection conn = new OleDbConnection(connString))
+            {
+                // open the connection to the database 
+                conn.Open();
+                OleDbCommand cmd = new OleDbCommand(model.TableName, conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                foreach (var para in model.Parameters)
+                {
+                    if (string.IsNullOrEmpty(para.ParameterValue))
+                    {
+                        if (para.ParamterDataTypeOleDbType == OleDbType.DBTimeStamp || para.ParamterDataTypeOleDbType == OleDbType.DBDate)
+                        {
+                            para.ParameterValue = DateTime.Now.ToShortDateString();
+                        }
+                    }
+                    cmd.Parameters.AddWithValue("@" + para.ParameterName, para.ParameterValue);
+                    //cmd.Parameters.Add(new OleDbParameter { 
+                    //    Value =  string.IsNullOrEmpty(para.ParameterValue) ? DBNull.Value : (object)para.ParameterValue , 
+                    //    ParameterName = para.ParameterName, 
+                    //    Direction = ParameterDirection.Input, 
+                    //    IsNullable = true });
+                }
+                dt.Load(cmd.ExecuteReader());
+                conn.Close();
+                conn.Dispose();
+            }
+            return dt;
         }
 
         #endregion

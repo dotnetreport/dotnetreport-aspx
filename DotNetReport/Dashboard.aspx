@@ -3,7 +3,7 @@
      <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/gridstack.js/0.4.0/gridstack.min.css" />
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="body" runat="server">
-    
+
 <div class="row">
     <div class="col-8" data-bind="with: currentDashboard">
         <h2 data-bind="text: name ? name : 'Dashboard'">Dashboard</h2>
@@ -16,22 +16,22 @@
             <label class="col">Switch Dashboard</label>
             <select class="col form-control" data-bind="options: dashboards, optionsText: 'name', optionsValue: 'id', value: selectDashboard"></select>
             <div class="col">
-                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#add-dashboard-modal" title="Edit Dashboard Settings" data-bind="click: editDashboard">Edit</button>
-                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#add-dashboard-modal" title="Add a New Dashboard" data-bind="click: newDashboard">Add</button>
+                <button onclick="return false;" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#add-dashboard-modal" title="Edit Dashboard Settings" data-bind="click: editDashboard">Edit</button>
+                <button onclick="return false;" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#add-dashboard-modal" title="Add a New Dashboard" data-bind="click: newDashboard">Add</button>
             </div>
         </div>
     </div>
 </div>
 <div class="clearfix"></div>
 
-<div data-bind="template: { name: 'admin-mode-template' }, visible: allowAdmin" style="display: none;"></div>
+<div data-bind="template: {name: 'admin-mode-template'}, visible: allowAdmin" style="display: none;"></div>
 
 <div class="alert alert-info">
     To manage Reports, please <a href="/DotNetReport/Index.aspx">click here</a>.
 </div>
 <div class="centered" style="display: none;" data-bind="visible: dashboards().length == 0 ">
     No Dashboards yet. Click below to Start<br />
-    <button type="button" class="btn btn-lg btn-primary" data-toggle="modal" data-target="#add-dashboard-modal"><i class="fa fa-dashboard"></i> Create a New Dashboard</button>
+    <button onclick="return false;" class="btn btn-lg btn-primary" data-toggle="modal" data-target="#add-dashboard-modal"><i class="fa fa-dashboard"></i> Create a New Dashboard</button>
 </div>
 
 <div class="modal modal-fullscreen" id="add-dashboard-modal" role="dialog">
@@ -39,7 +39,7 @@
         <div class="modal-content" data-bind="with: dashboard">
             <div class="modal-header">
                 <h4 class="modal-title"><span data-bind="text: Id() ? 'Edit' : 'Add'"></span> Dashboard</h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <button onclick="return false;" type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
                 <div class="form-horizontal">
@@ -88,12 +88,13 @@
                 <!-- /ko -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bind="click: $root.deleteDashboard, visible: Id">Delete Dashboard</button>
-                <button type="button" class="btn btn-primary" data-bind="click: $root.saveDashboard">Save Dashboard</button>
+                <button onclick="return false;" type="button" class="btn btn-danger" data-bind="click: $root.deleteDashboard, visible: Id">Delete Dashboard</button>
+                <button onclick="return false;" type="button" class="btn btn-primary" data-bind="click: $root.saveDashboard">Save Dashboard</button>
             </div>
         </div>
     </div>
 </div>
+
 
 <div class="clearfix"></div>
 
@@ -104,17 +105,11 @@
         <div class="card" data-bind="attr: {class: 'card ' + panelStyle + ' grid-stack-item-content'}" style="overflow-y: hidden;">
             <div class="card-header">
                 <span data-bind="text: ReportName"></span>
-                <div class="pull-right">
-                    <form action="/DotNetReport/ReportService.asmx/DownloadExcel" id="downloadExcel" method="post"> 
-                    
-                        <input type="hidden" id="reportSql" name="reportSql" data-bind="value: currentSql" />
-                        <input type="hidden" id="connectKey" name="connectKey" data-bind="value: currentConnectKey" />
-                        <input type="hidden" id="reportName" name="reportName" data-bind="value: ReportName" />
-                        <button type="submit" class="btn btn-secondary btn-sm"><span class="fa fa-file-excel-o"></span></button>
-                    </form>
-                </div>
+                <a class="btn btn-default btn-xs pull-right" href="#" data-bind="click: downloadExcel(currentSql(), currentConnectKey(), ReportName())">
+                        <span class="fa fa-file-excel-o"></span>
+                </a>
                 <!-- ko if: FlyFilters().length> 0-->
-                <button type="button" class="btn btn-secondary btn-sm pull-right" data-bind="click: toggleFlyFilters"><i class="fa fa-filter" title="Filter Report"></i></button>
+                <button onclick="return false;" class="btn btn-default btn-xs pull-right" data-bind="click: toggleFlyFilters"><i class="fa fa-filter" title="Filter Report"></i></button>
                 <!-- /ko -->
 
                 <a data-bind="attr: {href: '/DotNetReport/index.aspx?reportId=' + ReportID()}" class="btn btn-default btn-xs pull-right">
@@ -129,7 +124,7 @@
                     <div data-bind="template: 'report-template', data: $data"></div>
                 </div>
             </div>
-            <div class="card-footer">
+            <div class="card-footer form-inline">
                 <div class="small" data-bind="with: pager">
                     <div class="form-group pull-left total-records">
                         <span data-bind="text: 'Total Records: ' + totalRecords()"></span><br />
@@ -149,36 +144,38 @@
 
 </asp:Content>
 <asp:Content ID="Content3" ContentPlaceHolderID="scripts" runat="server">
-     <script type="text/javascript" src='//cdnjs.cloudflare.com/ajax/libs/gridstack.js/0.4.0/gridstack.min.js'></script>
+    <script type="text/javascript" src='//cdnjs.cloudflare.com/ajax/libs/gridstack.js/0.4.0/gridstack.min.js'></script>
     <script type="text/javascript" src='//cdnjs.cloudflare.com/ajax/libs/gridstack.js/0.4.0/gridstack.jQueryUI.min.js'></script>
     <script type="text/javascript">
-    $(document).ready(function () {
-        var reports = [];
-        var dashboards = [];
+        $(document).ready(function () {
+            var reports = [];
+            var dashboards = [];
 
-        <% foreach (var d in Model.Dashboards) {%>
-        dashboards.push({ id: <%=d["Id"] %>, name: "<%=d["Name"]%>", description: "<%= d["Description"]%>", selectedReports: "<%= d["SelectedReports"]%>", userId: "<%= d["UserId"]%>", userRoles: "<%= d["UserRoles"]%>", viewOnlyUserId: "<%= d["ViewOnlyUserId"]%>", viewOnlyUserRoles: "<%= d["ViewOnlyUserRoles"]%>"  });
-        <%}%>
-
-        <% foreach (var r in Model.Reports) {%>
-        reports.push({reportSql: "<%= r.ReportSql%>", reportId: <%= r.ReportId%>, reportFilter: htmlDecode('<%=HttpUtility.UrlDecode(r.ReportFilter)%>'), connectKey: "<%= r.ConnectKey%>", x: <%= r.X%>, y: <%= r.Y%>, width: <%= r.Width%>, height: <%= r.Height%> });
-        <%}%>
-        var svc = "/DotNetReport/ReportService.asmx/";
-        ajaxcall({ url: svc +"GetUsersAndRoles" }).done(function (data) {
-            var vm = new dashboardViewModel({
-                runReportUrl: svc +"Report",
-                execReportUrl: svc +"RunReport",
-                reportWizard: $("#filter-panel"),
-                lookupListUrl: svc +"GetLookupList",
-                apiUrl: svc +"CallReportApi",
-                runReportApiUrl: svc +"RunReportApi",
-                reportMode: "execute",
-                reports: reports,
-                dashboards: dashboards,
-                users: data.users,
-                userRoles: data.userRoles,
-                allowAdmin: data.allowAdminMode,
-                dashboardId:  <%=(Request.QueryString["id"] != null ? Request.QueryString["id"] : "0")%>
+            <% foreach (var d in Model.Dashboards) {%>
+            dashboards.push({ id: <%=d["Id"] %>, name: "<%=d["Name"]%>", description: "<%= d["Description"]%>", selectedReports: "<%= d["SelectedReports"]%>", userId: "<%= d["UserId"]%>", userRoles: "<%= d["UserRoles"]%>", viewOnlyUserId: "<%= d["ViewOnlyUserId"]%>", viewOnlyUserRoles: "<%= d["ViewOnlyUserRoles"]%>" });
+            <%}%>
+            
+            <% foreach (var r in Model.Reports) {%>
+            reports.push({ reportSql: "<%= r.ReportSql%>", reportId: <%= r.ReportId%>, reportFilter: htmlDecode('<%=HttpUtility.UrlDecode(r.ReportFilter)%>'), connectKey: "<%= r.ConnectKey%>", x: <%= r.X%>, y: <%= r.Y%>, width: <%= r.Width%>, height: <%= r.Height%> });
+            <%}%>
+            var svc = "/DotNetReport/ReportService.asmx/";
+            ajaxcall({ url: svc + "GetUsersAndRoles" }).done(function (data) {
+                if (data.d) data = data.d;
+                var vm = new dashboardViewModel({
+                    runReportUrl: svc + "Report",
+                    execReportUrl: svc + "RunReport",
+                    reportWizard: $("#filter-panel"),
+                    lookupListUrl: svc + "GetLookupList",
+                    apiUrl: svc + "CallReportApi",
+                    runReportApiUrl: svc + "RunReportApi",
+                    reportMode: "execute",
+                    reports: reports,
+                    dashboards: dashboards,
+                    users: data.users,
+                    userRoles: data.userRoles,
+                    allowAdmin: data.allowAdminMode,
+                    dataFilters: data.dataFilters,
+                    dashboardId:  <%=(Request.QueryString["id"] != null ? Request.QueryString["id"] : "0")%>
             });
 
             vm.init().done(function () {
@@ -188,17 +185,17 @@
                         cellHeight: 80,
                         verticalMargin: 10
                     };
-                    $('.grid-stack').gridstack(options);                    
-                    $('.grid-stack').on('gsresizestop', function (event, elem) {
-                        var newHeight = $(elem).attr('data-gs-height');
-                        $(elem).closest(".list-overflow-auto").css('height', newHeight - 50);
-                    });
+                    $('.grid-stack').gridstack(options);
                     $('.grid-stack').on('change', function (event, items) {
                         _.forEach(items, function (x) {
                             vm.updatePosition(x);
                         });
                     });
                 });
+
+                setTimeout(function () {
+                    vm.drawChart();
+                }, 1000);
             });
 
             $(window).resize(function () {
@@ -206,5 +203,14 @@
             });
         });
     });
+
+    function downloadExcel(currentSql, currentConnectKey, reportName) {
+        if (!currentSql) return;
+        redirectToReport("/DotNetReport/ReportService.asmx/DownloadExcel", {
+            reportSql: unescape(currentSql),
+            connectKey: unescape(currentConnectKey),
+            reportName: unescape(reportName)
+        }, true, false);
+    }
     </script>
 </asp:Content>

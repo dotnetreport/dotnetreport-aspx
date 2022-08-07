@@ -4,7 +4,7 @@ using System.Web;
 
 namespace ReportBuilder.Demo.WebForms.DotNetReport
 {
-    public partial class Report : System.Web.UI.Page
+    public partial class ReportPrint : System.Web.UI.Page
     {
         private DotNetReportModel _model;
         public DotNetReportModel Model
@@ -18,7 +18,6 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
                 _model = value;
             }
         }
-
         protected void Page_Load(object sender, EventArgs e)
         {
 
@@ -35,6 +34,15 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
             string reportType = Request.Form["reportType"];
             int selectedFolder = Convert.ToInt32(Request.Form["selectedFolder"]);
             string reportSeries = Request.Form["reportSeries"];
+            string userId = Request.Form["userId"];
+            string clientId = Request.Form["clientId"];
+            string currentUserRole = Request.Form["currentUserRole"];
+
+
+            Session["reportPrint"] = "true";
+            Session["userId"] = userId;
+            Session["clientId"] = clientId;
+            Session["currentUserRole"] = currentUserRole;
 
             Model = new DotNetReportModel
             {
@@ -48,12 +56,9 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
                 ShowUniqueRecords = showUniqueRecords,
                 ShowDataWithGraph = showDataWithGraph,
                 SelectedFolder = selectedFolder,
-                ReportSeries = !string.IsNullOrEmpty(reportSeries) ? reportSeries.Replace("%20", " ") : string.Empty,
-                ReportFilter = HttpUtility.UrlDecode(reportFilter) // json data to setup filter correctly again
+                ReportFilter = reportFilter // json data to setup filter correctly again
             };
 
         }
-
-
     }
 }

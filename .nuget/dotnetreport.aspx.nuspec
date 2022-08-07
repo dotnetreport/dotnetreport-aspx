@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+	<metadata>
+		<id>dotNetReport.aspx</id>
+		<version>4.2.6</version>
+		<authors>dotnetReport Builder</authors>
+		<owners>dotnetReport Builder</owners>
+		<projectUrl>https://dotnetreport.com/</projectUrl>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>.Net Ad Hoc Report Builder and Embedded Analytics for MVC that allows programmers to easily add Report building functionality to their ASP .NET Web Application</description>
+		<releaseNotes>Added new Features, Forced and Cascading Filters</releaseNotes>
+		<copyright>(c) dotnet Report Builder</copyright>
+		<tags>embedded analytics, report generator, sql reporting tools, visual studio report designer, ad-hoc reporting, asp .net mvc report, report builder, ad hoc adhoc reports, viewer, reportviewer, sql builder mvc, web forms, query builder,mvc reporting,custom query,query maker, dotnetreport</tags>
+		<dependencies>
+			<dependency id="Bootbox.JS" version="5.5.2" />
+			<dependency id="bootstrap" version="4.6.0" />
+			<dependency id="EPPlus" version="4.5.1" />
+			<dependency id="FontAwesome" version="4.7.0" />
+			<dependency id="jQuery" version="3.5.1" />
+			<dependency id="jQuery.BlockUI" version="2.70.0" />
+			<dependency id="jQuery.UI.Combined" version="1.12.1" />
+			<dependency id="jQuery.Validation" version="1.19.3"/>
+			<dependency id="Knockout.Mapping" version="2.4.0" />
+			<dependency id="knockoutjs" version="3.5.1" />
+			<dependency id="Knockout-Sortable" version="1.2.0" />
+			<dependency id="lodash" version="4.17.11" />
+			<dependency id="Newtonsoft.Json" version="12.0.3" />
+			<dependency id="popper.js" version="1.16.1" />
+			<dependency id="PuppeteerSharp" version="2.0.4"></dependency>
+			<dependency id="Quartz" version="3.2.4" />
+			<dependency id="Select2.js" version="4.0.5" />
+			<dependency id="System.Net.Http" version="4.3.4"></dependency>
+			<dependency id="toastr" version="2.1.1"/>
+		</dependencies>
+	</metadata>
+	<files>
+		<file src="..\DotNetReport\readme.txt" target="" />
+		<file src="..\DotNetReport\Content\img\report-logo.png" target="Content\Content\img\report-logo.png" />
+		<file src="..\DotNetReport\Content\bootstrap-mvc-validation.css" target="Content\Content\bootstrap-mvc-validation.css" />
+		<file src="..\DotNetReport\Content\bootstrap-editable.css" target="Content\Content\bootstrap-editable.css" />
+		<file src="..\DotNetReport\Content\dotnetreport.css" target="Content\Content\dotnetreport.css" />
+		<file src="..\DotNetReport\Index.aspx" target="Content\DotNetReport\Index.aspx" />
+		<file src="..\DotNetReport\Index.aspx.cs" target="Content\DotNetReport\Index.aspx.cs" />
+		<file src="..\DotNetReport\Index.aspx.designer.cs" target="Content\DotNetReport\Index.aspx.designer.cs" />
+		<file src="..\DotNetReport\Report.aspx" target="Content\DotNetReport\Report.aspx" />
+		<file src="..\DotNetReport\Report.aspx.cs" target="Content\DotNetReport\Report.aspx.cs" />
+		<file src="..\DotNetReport\Report.aspx.designer.cs" target="Content\DotNetReport\Report.aspx.designer.cs" />
+		<file src="..\DotNetReport\ReportLayout.Master" target="Content\DotNetReport\ReportLayout.Master" />
+		<file src="..\DotNetReport\ReportLayout.Master.cs" target="Content\DotNetReport\ReportLayout.Master.cs" />
+		<file src="..\DotNetReport\ReportLayout.Master.designer.cs" target="Content\DotNetReport\ReportLayout.Master.designer.cs" />
+		<file src="..\DotNetReport\ReportService.asmx" target="Content\DotNetReport\ReportService.asmx" />
+		<file src="..\DotNetReport\ReportService.asmx.cs" target="Content\DotNetReport\ReportService.asmx.cs" />
+		<file src="..\DotNetReport\Setup.aspx" target="Content\DotNetReport\Setup.aspx" />
+		<file src="..\DotNetReport\Setup.aspx.cs" target="Content\DotNetReport\Setup.aspx.cs" />
+		<file src="..\DotNetReport\Setup.aspx.designer.cs" target="Content\DotNetReport\Setup.aspx.designer.cs" />
+		<file src="..\DotNetReport\Dashboard.aspx" target="Content\DotNetReport\Dashboard.aspx" />
+		<file src="..\DotNetReport\Dashboard.aspx.cs" target="Content\DotNetReport\Dashboard.aspx.cs" />
+		<file src="..\DotNetReport\Dashboard.aspx.designer.cs" target="Content\DotNetReport\Dashboard.aspx.designer.cs" />
+		<file src="..\DotNetReport\Models\DotNetReportModel.cs" target="Content\Models\DotNetReportModel.cs" />
+		<file src="..\DotNetReport\Jobs\DotNetReportJob.cs" target="Content\Jobs\DotNetReportJob.cs" />
+		<file src="..\DotNetReport\Scripts\dotnetreport-helper.js" target="Content\Scripts\dotnetreport-helper.js" />
+		<file src="..\DotNetReport\Scripts\dotnetreport-setup.js" target="Content\Scripts\dotnetreport-setup.js" />
+		<file src="..\DotNetReport\Scripts\dotnetreport.min.js" target="Content\Scripts\dotnetreport.min.js" />
+		<file src="..\DotNetReport\Scripts\bootstrap-editable.min.js" target="Content\Scripts\bootstrap-editable.min.js" />
+		<file src="..\DotNetReport\Scripts\knockout.x-editable.min.js" target="Content\Scripts\knockout.x-editable.min.js" />
+		<file src="..\DotNetReport\Scripts\fabric.min.js" target="Content\Scripts\fabric.min.js" />
+		<file src="..\DotNetReport\web.config.install.xdt" target="Content\web.config.install.xdt" />
+	</files>
+</package>
