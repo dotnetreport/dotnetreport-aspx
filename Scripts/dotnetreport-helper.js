@@ -9,8 +9,8 @@ function ajaxcall(options) {
 
     return $.ajax({
         url: options.url,
-        type: options.type || "GET",
-        data: options.data,
+        type: options.type || "POST",
+        data: (options.type == "POST") ? options.data : JSON.stringify(options.data),
         cache: options.cache || false,
         dataType: options.dataType || "json",
         contentType: options.contentType || "application/json; charset=utf-8",
@@ -140,12 +140,15 @@ ko.bindingHandlers.select2 = {
     }
 };
 
-function redirectToReport(url, prm, newtab) {
+function redirectToReport(url, prm, newtab, multipart) {
     prm = (typeof prm == 'undefined') ? {} : prm;
     newtab = (typeof newtab == 'undefined') ? false : newtab;
-
+    multipart = (typeof multipart == 'undefined') ? true : multipart;
     var form = document.createElement("form");
-    $(form).attr("id", "reg-form").attr("name", "reg-form").attr("action", url).attr("method", "post").attr("enctype", "multipart/form-data");
+    $(form).attr("id", "reg-form").attr("name", "reg-form").attr("action", url).attr("method", "post");
+    if (multipart) {
+        $(form).attr("enctype", "multipart/form-data");
+    }
     if (newtab) {
         $(form).attr("target", "_blank");
     }
