@@ -1,103 +1,166 @@
-﻿/// .Net Report Builder wizard handler
-/// License has to be purchased for use
-/// 2015 (c) www.dotnetreport.com
+﻿/// .Net Report Builder helper methods
 
-// Wizard next button and validation
-var allNextBtn = $(".nextBtn");
-var currentStep = "collapseOne";
-var skip = false;
-
-function isInputValid(ctl) {
-    // first check for custom validation
-    if ($(ctl).attr("data-notempty") != null) {
-        if ($(ctl).children("option").length == 0)
-            return false;
+// Ajax call wrapper function
+function ajaxcall(options) {
+    var noBlocking = options.noBlocking === true ? true : false
+    if ($.blockUI && !noBlocking) {
+        $.blockUI({ baseZ: 500 });
     }
 
-    // next try html5 validation if availble
-    if (ctl.validity) {
-        return ctl.validity.valid;
-    }
+    return $.ajax({
+        url: options.url,
+        type: options.type || "GET",
+        data: options.data,
+        cache: options.cache || false,
+        dataType: options.dataType || "json",
+        contentType: options.contentType || "application/json; charset=utf-8",
+        headers: options.headers || {},
+        async: options.async === false ? options.async : true
+    }).done(function (data) {
+        if ($.unblockUI) {
+            $.unblockUI();
+        }
+        delete options;
+    }).fail(function (jqxhr, status, error) {
+        if ($.unblockUI) {
+            $.unblockUI();
+        }
+        delete options;
+        if (jqxhr.responseJSON && jqxhr.responseJSON.d) jqxhr.responseJSON = jqxhr.responseJSON.d;
+        var msg = jqxhr.responseJSON && jqxhr.responseJSON.Message ? "\n" + jqxhr.responseJSON.Message : "";
 
-    // finally just check for required attr
-    if ($(ctl).attr("required") != null && $(ctl).val() == "")
-        return false;
-
-    return true;
+        if (error == "Conflict") {
+            toastr.error("Conflict detected. Please ensure the record is not a duplicate and that it has no related records." + msg);
+        } else if (error == "Bad Request") {
+            toastr.error("Validation failed for your request. Please make sure the data provided is correct." + msg);
+        } else if (error == "Unauthorized") {
+            toastr.error("You are not authorized to make that request." + msg);
+        } else if (error == "Forbidden") {
+            location.reload(true);
+        } else if (error == "Not Found") {
+            toastr.error("Record not found." + msg);
+        } else if (error == "Internal Server Error") {
+            toastr.error("The system was unable to complete your request. <br>Service Reponse: " + msg);
+        } else {
+            toastr.error(status + ": " + msg);
+        }
+    });
 }
 
-function validateStep(sender) {
-    if (skip) return;
-    var curStep = $(sender).closest(".panel").find("div.panel-collapse"),
-        curStepBtn = curStep.attr("id"),
-        nextStepWizard = $('div.panel a[href="#' + curStepBtn + '"]').closest(".panel").next().find("a"),
-        curInputs = curStep.find("input,select"),
-        isValid = true;
+// knockout binding extenders
+ko.bindingHandlers.datepicker = {
+    init: function (element, valueAccessor, allBindingsAccessor) {
+        //initialize datepicker with some optional options
+        var options = allBindingsAccessor().datepickerOptions || {};
+        $(element).datepicker(options);
 
-    $(".form-group").removeClass("has-error");
-    for (var i = 0; i < curInputs.length; i++) {
-        if (!isInputValid(curInputs[i])) {
-            isValid = false;
-            $(curInputs[i]).closest(".form-group").addClass("has-error");
+        //handle the field changing
+        ko.utils.registerEventHandler(element, "change", function () {
+            var observable = valueAccessor();
+            observable($(element).datepicker({ dateFormat: 'mm/dd/yyyy' }).val());
+        });
+
+        //handle disposal (if KO removes by the template binding)
+        ko.utils.domNodeDisposal.addDisposeCallback(element, function () {
+            $(element).datepicker("destroy");
+        });
+
+    },
+    //update the control when the view model changes
+    update: function (element, valueAccessor) {
+        var value = ko.utils.unwrapObservable(valueAccessor()),
+            current = $(element).datepicker("getDate");
+
+        if (value - current !== 0) {
+            $(element).datepicker("setDate", value);
         }
     }
+};
 
-    if (isValid) {
-        nextStepWizard.removeAttr("disabled");
-        if (sender.className && sender.className.indexOf("nextBtn") > -1)
-            nextStepWizard.trigger("click"); // go to next step by click if next button was pressed
+ko.bindingHandlers.fadeVisible = {
+    init: function (element, valueAccessor) {
+        // Initially set the element to be instantly visible/hidden depending on the value
+        var value = valueAccessor();
+        $(element).toggle(ko.utils.unwrapObservable(value)); // Use "unwrapObservable" so we can handle values that may or may not be observable
+    },
+    update: function (element, valueAccessor) {
+        // Whenever the value subsequently changes, slowly fade the element in or out
+        var value = valueAccessor();
+        ko.utils.unwrapObservable(value) ? $(element).fadeIn("slow") : $(element).hide();
     }
-    else
-        nextStepWizard.attr("disabled", "disabled");
+};
 
-    return isValid;
+ko.bindingHandlers.checkedInArray = {
+    init: function (element, valueAccessor) {
+        ko.utils.registerEventHandler(element, "click", function () {
+            var options = ko.utils.unwrapObservable(valueAccessor()),
+                array = options.array, // don't unwrap array because we want to update the observable array itself
+                value = ko.utils.unwrapObservable(options.value),
+                checked = element.checked;
+
+            ko.utils.addOrRemoveItem(array, value, checked);
+
+        });
+    },
+    update: function (element, valueAccessor) {
+        var options = ko.utils.unwrapObservable(valueAccessor()),
+            array = ko.utils.unwrapObservable(options.array),
+            value = ko.utils.unwrapObservable(options.value);
+
+        element.checked = ko.utils.arrayIndexOf(array, value) >= 0;
+    }
+};
+
+ko.bindingHandlers.select2 = {
+    after: ["options", "value"],
+    init: function (el, valueAccessor, allBindingsAccessor, viewModel) {
+        $(el).select2(ko.unwrap(valueAccessor()));
+        ko.utils.domNodeDisposal.addDisposeCallback(el, function () {
+            $(el).select2('destroy');
+        });
+    },
+    update: function (el, valueAccessor, allBindingsAccessor, viewModel) {
+        var allBindings = allBindingsAccessor();
+        var select2 = $(el).data("select2");
+        if ("value" in allBindings) {
+            var newValue = "" + ko.unwrap(allBindings.value);
+            if ((allBindings.select2.multiple || el.multiple) && newValue.constructor !== Array) {
+                select2.val([newValue.split(",")]);
+            }
+            else {
+                select2.val([newValue]);
+            }
+        }
+        if ("selectedOptions" in allBindings && select2.val().length == 0) {
+            var newValue = ko.unwrap(allBindings.selectedOptions);
+            if ((allBindings.select2.multiple || el.multiple) && newValue && newValue.constructor == Array) {
+                select2.val([newValue]);
+            }
+        }
+    }
+};
+
+function redirectToReport(url, prm, newtab) {
+    prm = (typeof prm == 'undefined') ? {} : prm;
+    newtab = (typeof newtab == 'undefined') ? false : newtab;
+
+    var form = document.createElement("form");
+    $(form).attr("id", "reg-form").attr("name", "reg-form").attr("action", url).attr("method", "post").attr("enctype", "multipart/form-data");
+    if (newtab) {
+        $(form).attr("target", "_blank");
+    }
+    $.each(prm, function (key) {
+        $(form).append('<input type="text" name="' + key + '" value="' + escape(this) + '" />');
+    });
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+
+    return false;
 }
 
-allNextBtn.click(function () {
-    if (skip) return;
-    return validateStep(this);
-});
-
-$(".panel").on("hidden.bs.collapse", function (e) {
-    if (skip) return;
-
-    // on new step selection, validate current step
-    // if current step is invalid, set back to current step
-    if (!validateStep(e.currentTarget)) {
-        skip = true;
-        setTimeout(function () {
-            $(e.currentTarget).find("a").removeAttr("disabled").trigger("click");
-            setTimeout(function () {
-                skip = false;
-            }, 500);
-        }, 100);
-    }
-});
-
-// prevent collapse
-$(".panel-heading a").on("click", function (e) {
-    if ($(this).parents(".panel").children(".panel-collapse").hasClass("in")) {
-        e.stopPropagation();
-    }
-});
-
-$("a[disabled]").click(function (e) {
-    if ($(this).attr("disabled") != null) {
-        e.preventDefault();
-        return false;
-    }
-});
-
-var wizardHelper = {
-    openFirstStep: function () {
-        $("#headingOne").find("a").trigger("click");
-    },
-    enableAllSteps: function () {
-        $("a[disabled]").each(function (i, e) { $(e).removeAttr("disabled"); });
-    },
-    disableAllSteps: function () {
-
-    }
+function htmlDecode(input) {
+    var e = document.createElement('div');
+    e.innerHTML = input;
+    return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
 }
-
-
