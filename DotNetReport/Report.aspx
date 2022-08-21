@@ -53,30 +53,34 @@
         }
 
         $(document).ready(function () {
-            var svc = "/DotNetReport/ReportService.asmx/";
-            var vm = new reportViewModel({
-                runReportUrl: svc + "Report",
-                execReportUrl: svc + "RunReport",
-                runLinkReportUrl: svc + "ReportLink",
-                reportWizard: $("#filter-panel"),
-                reportHeader: "report-header",
-                lookupListUrl: svc + "GetLookupList",
-                apiUrl: svc + "CallReportApi",
-                runReportApiUrl: svc + "RunReportApi",
-                reportFilter: htmlDecode('<%= Model.ReportFilter %>'),
-                reportMode: "execute",
-                reportSql: "<%= Model.ReportSql %>",
-                reportConnect: "<%= Model.ConnectKey %>",
-                ReportSeries: "<%= Model.ReportSeries %>",
-                AllSqlQuries: "<%= Model.ReportSql %>"
-            });
+            ajaxcall({ url: '/DotNetReport/ReportService.asmx/GetUsersAndRoles', type: 'POST' }).done(function (data) {
+                var svc = "/DotNetReport/ReportService.asmx/";
+                var vm = new reportViewModel({
+                    runReportUrl: svc + "Report",
+                    execReportUrl: svc + "RunReport",
+                    runLinkReportUrl: svc + "ReportLink",
+                    reportWizard: $("#filter-panel"),
+                    reportHeader: "report-header",
+                    lookupListUrl: svc + "GetLookupList",
+                    apiUrl: svc + "CallReportApi",
+                    runReportApiUrl: svc + "RunReportApi",
+                    reportFilter: htmlDecode('<%= Model.ReportFilter %>'),
+                    reportMode: "execute",
+                    reportSql: "<%= Model.ReportSql %>",
+                    reportConnect: "<%= Model.ConnectKey %>",
+                    ReportSeries: "<%= Model.ReportSeries %>",
+                    AllSqlQuries: "<%= Model.ReportSql %>",
+                    userSettings: data,
+                    dataFilters: data.dataFilters
+                });
 
-            vm.LoadReport(<%= Model.ReportId %>, true, "<%= Model.ReportSeries %>").done(function () {
-                ko.applyBindings(vm);
-            });
+                vm.LoadReport(<%= Model.ReportId %>, true, "<%= Model.ReportSeries %>").done(function () {
+                    ko.applyBindings(vm);
+                });
 
-            $(window).resize(function () {
-                vm.DrawChart();
+                $(window).resize(function () {
+                    vm.DrawChart();
+                });
             });
         });
 

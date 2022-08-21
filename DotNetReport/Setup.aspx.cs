@@ -253,7 +253,8 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
                         IsView = type == "VIEW",
                         Selected = matchTable != null,
                         Columns = new List<ColumnViewModel>(),
-                        AllowedRoles = matchTable != null ? matchTable.AllowedRoles : new List<string>()
+                        AllowedRoles = matchTable != null ? matchTable.AllowedRoles : new List<string>(),
+                        AccountIdField = matchTable != null ? matchTable.AccountIdField : ""
                     };
 
                     var dtField = conn.GetOleDbSchemaTable(OleDbSchemaGuid.Columns, new object[] { null, null, tableName });

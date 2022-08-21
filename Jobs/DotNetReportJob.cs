@@ -11,7 +11,7 @@ using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 
-namespace ReportBuilder.Demo.Web.Jobs
+namespace ReportBuilder.Web.Jobs
 {
     public class ReportSchedule
     {
@@ -21,7 +21,7 @@ namespace ReportBuilder.Demo.Web.Jobs
         public string LastRun { get; set; }
         public DateTime? NextRun { get; set; }
         public string UserId { get; set; }
-        public string ClientId { get; set; }
+        public string Format { get; set; }
     }
     public class ReportWithSchedule
     {
@@ -32,8 +32,10 @@ namespace ReportBuilder.Demo.Web.Jobs
         public List<ReportSchedule> Schedules { get; set; }
 
     }
+
     public class JobScheduler
     {
+        public static string WebAppRootUrl = "";
         public static async void Start()
         {
             var schedulerFactory = new StdSchedulerFactory();
@@ -110,7 +112,27 @@ namespace ReportBuilder.Demo.Web.Jobs
                                 content = await response.Content.ReadAsStringAsync();
                                 var columnDetails = JsonConvert.DeserializeObject<List<ReportHeaderColumn>>(content);
 
-                                var excelFile = DotNetReportHelper.GetExcelFile(reportToRun.ReportSql, reportToRun.ConnectKey, reportToRun.ReportName, columns: columnDetails);
+                                byte[] fileData;
+                                string fileExt = "";
+
+                                switch (schedule.Format.ToUpper())
+                                {
+                                    case "PDF":
+                                        fileData = await DotNetReportHelper.GetPdfFile(JobScheduler.WebAppRootUrl + "/Report/ReportPrint", reportToRun.ReportId, reportToRun.ReportSql, reportToRun.ConnectKey, reportToRun.ReportName, schedule.UserId, clientId, (new JavaScriptSerializer()).Serialize(dataFilters));
+                                        fileExt = ".pdf";
+                                        break;
+
+                                    case "CSV":
+                                        fileExt = ".csv";
+                                        fileData = DotNetReportHelper.GetCSVFile(reportToRun.ReportSql, reportToRun.ConnectKey);
+                                        break;
+
+                                    case "EXCEL":
+                                    default:
+                                        fileData = DotNetReportHelper.GetExcelFile(reportToRun.ReportSql, reportToRun.ConnectKey, reportToRun.ReportName, columns: columnDetails, includeSubtotal: reportToRun.IncludeSubTotals);
+                                        fileExt = ".xlsx";
+                                        break;
+                                }
 
                                 // send email
                                 var mail = new MailMessage
@@ -122,7 +144,7 @@ namespace ReportBuilder.Demo.Web.Jobs
                                 };
                                 mail.To.Add(schedule.EmailTo);
 
-                                var attachment = new Attachment(new MemoryStream(excelFile), report.Name + ".xlsx");
+                                var attachment = new Attachment(new MemoryStream(fileData), report.Name + fileExt);
                                 mail.Attachments.Add(attachment);
 
                                 using (var smtpServer = new SmtpClient(mailServer))
