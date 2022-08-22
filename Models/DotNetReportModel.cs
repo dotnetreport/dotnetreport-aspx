@@ -558,8 +558,7 @@ namespace ReportBuilder.Web.Models
 
         }
 
-
-        public static byte[] GetPdfFile(string reportSql, string connectKey, string reportName, string chartData = null)
+        public static byte[] GetPdfFile(string reportSql, string connectKey, string reportName, string chartData = null, List<ReportHeaderColumn> columns = null, bool includeSubtotal = false)
         {
             var sql = Decrypt(reportSql);
             var dt = new DataTable();

@@ -397,12 +397,13 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
         }
 
         [WebMethod(EnableSession = true)]
-        public void DownloadPdf(string reportSql, string connectKey, string reportName, string chartData = null)
+        public void DownloadPdf(string reportSql, string connectKey, string reportName, string chartData = null, string columnDetails = null, bool includeSubtotal = false)
         {
             reportSql = HttpUtility.HtmlDecode(reportSql);
             chartData = HttpUtility.UrlDecode(chartData);
             chartData = chartData.Replace(" ", " +");
             reportName = HttpUtility.UrlDecode(reportName);
+            var columns = columnDetails == null ? new List<ReportHeaderColumn>() : JsonConvert.DeserializeObject<List<ReportHeaderColumn>>(HttpUtility.UrlDecode(columnDetails));
 
             var pdf = DotNetReportHelper.GetPdfFile(reportSql, connectKey, reportName, chartData);
             Context.Response.AddHeader("content-disposition", "attachment; filename=" + reportName + ".pdf");
@@ -419,7 +420,7 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
             Context.Response.ClearContent();
             Context.Response.AddHeader("content-disposition", "attachment; filename=" + HttpUtility.UrlDecode(reportName) + ".csv");
             Context.Response.ContentType = "text/csv";
-            Context.Response.Write(excel);
+            Context.Response.BinaryWrite(excel);
             Context.Response.End();
 
         }
