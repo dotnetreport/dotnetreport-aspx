@@ -20,15 +20,14 @@
             }, 250);
         }
 
-        function downloadPdf(reportId, currentSql, currentConnectKey, reportName, allExpanded) {
+        function downloadPdf(reportId, currentSql, currentConnectKey, reportName, chartData) {
             if (!currentSql) return;
             redirectToReport("/DotNetReport/ReportService.asmx/DownloadPdf", {
                 reportId: reportId,
                 reportSql: unescape(currentSql),
                 connectKey: unescape(currentConnectKey),
                 reportName: unescape(reportName),
-                expandAll: unescape(allExpanded),
-                printUrl: "<%=  string.Format("{0}://{1}", Request.Url.Scheme, Request.Url.Authority) + "/DotNetReport/ReportPrint.aspx" %>"
+                chartData: unescape(chartData)
             }, true, false);
         }
 
@@ -125,7 +124,7 @@
                 </button>
                 <ul class="dropdown-menu">
                     <li class="dropdown-item">
-                        <a href="#" data-bind="click: downloadPdf(ReportID(), currentSql(), currentConnectKey(), ReportName(), allExpanded())">
+                        <a href="#" data-bind="click: downloadPdf(ReportID(), currentSql(), currentConnectKey(), ReportName(), ChartData())">
                             <span class="fa fa-file-pdf-o"></span> Pdf
                         </a>
                     </li>

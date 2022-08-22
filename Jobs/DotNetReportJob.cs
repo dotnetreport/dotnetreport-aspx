@@ -118,7 +118,7 @@ namespace ReportBuilder.Web.Jobs
                                 switch (schedule.Format.ToUpper())
                                 {
                                     case "PDF":
-                                        fileData = await DotNetReportHelper.GetPdfFile(JobScheduler.WebAppRootUrl + "/Report/ReportPrint", reportToRun.ReportId, reportToRun.ReportSql, reportToRun.ConnectKey, reportToRun.ReportName, schedule.UserId, clientId, (new JavaScriptSerializer()).Serialize(dataFilters));
+                                        fileData = DotNetReportHelper.GetPdfFile(reportToRun.ReportSql, reportToRun.ConnectKey, reportToRun.ReportName);
                                         fileExt = ".pdf";
                                         break;
 

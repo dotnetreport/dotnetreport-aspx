@@ -396,17 +396,18 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
 
         }
 
-
         [WebMethod(EnableSession = true)]
-        public void DownloadPdf(string printUrl, int reportId, string reportSql, string connectKey, string reportName, bool expandAll)
+        public void DownloadPdf(string reportSql, string connectKey, string reportName, string chartData = null)
         {
             reportSql = HttpUtility.HtmlDecode(reportSql);
-            var settings = GetSettings();
-            var dataFilters = settings.DataFilters != null ? JsonConvert.SerializeObject(settings.DataFilters) : "";
-            var pdf = DotNetReportHelper.GetPdfFile(HttpUtility.UrlDecode(printUrl), reportId, reportSql, HttpUtility.UrlDecode(connectKey), HttpUtility.UrlDecode(reportName), settings.UserId, settings.ClientId, string.Join(",", settings.CurrentUserRole), dataFilters, expandAll);
+            chartData = HttpUtility.UrlDecode(chartData);
+            chartData = chartData.Replace(" ", " +");
+            reportName = HttpUtility.UrlDecode(reportName);
+
+            var pdf = DotNetReportHelper.GetPdfFile(reportSql, connectKey, reportName, chartData);
             Context.Response.AddHeader("content-disposition", "attachment; filename=" + reportName + ".pdf");
             Context.Response.ContentType = "application/pdf";
-            Context.Response.Write(pdf);
+            Context.Response.BinaryWrite(pdf);
             Context.Response.End();
         }
 
