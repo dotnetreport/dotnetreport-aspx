@@ -20,18 +20,19 @@
             }, 250);
         }
 
-        function downloadPdf(currentSql, currentConnectKey, reportName, reportId) {
+        function downloadPdf(reportId, currentSql, currentConnectKey, reportName, allExpanded) {
             if (!currentSql) return;
             redirectToReport("/DotNetReport/ReportService.asmx/DownloadPdf", {
                 reportId: reportId,
                 reportSql: unescape(currentSql),
                 connectKey: unescape(currentConnectKey),
                 reportName: unescape(reportName),
+                expandAll: unescape(allExpanded),
                 printUrl: "<%= Request.Url.Scheme + "/DotNetReport/ReportPrint.aspx" %>"
             }, true, false);
         }
 
-        function downloadExcel(currentSql, currentConnectKey, reportName, allExpanded, expandSqls, columnDetails) {
+        function downloadExcel(currentSql, currentConnectKey, reportName, allExpanded, expandSqls, columnDetails, includeSubTotals) {
             if (!currentSql) return;
             redirectToReport("/DotNetReport/ReportService.asmx/DownloadExcel", {
                 reportSql: unescape(currentSql),
@@ -39,7 +40,17 @@
                 reportName: unescape(reportName),
                 allExpanded: unescape(allExpanded),
                 expandSqls: unescape(expandSqls),
-                columnDetails: unescape(columnDetails)
+                columnDetails: unescape(columnDetails),
+                includeSubTotals: unescape(includeSubTotals)
+            }, true, false);
+        }
+
+        function downloadCsv(currentSql, currentConnectKey, reportName) {
+            if (!currentSql) return;
+            redirectToReport("/DotNetReport/ReportService.asmx/DownloadCsv", {
+                reportSql: unescape(currentSql),
+                connectKey: unescape(currentConnectKey),
+                reportName: unescape(reportName)
             }, true, false);
         }
 
@@ -68,18 +79,21 @@
                     reportMode: "execute",
                     reportSql: "<%= Model.ReportSql %>",
                     reportConnect: "<%= Model.ConnectKey %>",
-                    ReportSeries: "<%= Model.ReportSeries %>",
+                    reportSeries: "<%= Model.ReportSeries %>",
                     AllSqlQuries: "<%= Model.ReportSql %>",
                     userSettings: data,
                     dataFilters: data.dataFilters
                 });
 
-                vm.LoadReport(<%= Model.ReportId %>, true, "<%= Model.ReportSeries %>").done(function () {
-                    ko.applyBindings(vm);
+                vm.loadProcs().done(function () {
+                    vm.LoadReport(<%= Model.ReportId %>, true, "<%= Model.ReportSeries %>").done(function () {
+                        ko.applyBindings(vm);
+                    });
                 });
 
                 $(window).resize(function () {
                     vm.DrawChart();
+                    vm.headerDesigner.resizeCanvas();
                 });
             });
         });
@@ -105,19 +119,24 @@
                 <span class="fa fa-print" aria-hidden="true"></span> Print Report
             </button>
 
-            <div class="btn-group">
+           <div class="btn-group">
                 <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <span class="fa fa-download"></span> Export <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu">
-                    <%--<li class="dropdown-item">
-                        <a href="#" data-bind="click: downloadPdf(currentSql(), currentConnectKey(), ReportName(), ReportID())">
+                    <li class="dropdown-item">
+                        <a href="#" data-bind="click: downloadPdf(ReportID(), currentSql(), currentConnectKey(), ReportName(), allExpanded())">
                             <span class="fa fa-file-pdf-o"></span> Pdf
                         </a>
-                    </li>--%>
+                    </li>
                     <li class="dropdown-item">
-                        <a href="#" data-bind="click: downloadExcel(currentSql(), currentConnectKey(), ReportName(), allExpanded(), getExpandSqls(), getColumnDetails())">
+                        <a href="#" data-bind="click: downloadExcel(currentSql(), currentConnectKey(), ReportName(), allExpanded(), getExpandSqls(), getColumnDetails(), IncludeSubTotal())">
                             <span class="fa fa-file-excel-o"></span> Excel
+                        </a>
+                    </li>
+                    <li class="dropdown-item">
+                        <a href="#" data-bind="click: downloadCsv(currentSql(), currentConnectKey(), ReportName())">
+                            <span class="fa fa-file-excel-o"></span> Csv
                         </a>
                     </li>
                     <li class="dropdown-item">
@@ -172,7 +191,7 @@
                         <span data-bind="text: 'Total Records: ' + totalRecords()"></span><br />
                     </div>
                     <div class="pull-left">
-                        <button class="btn btn-secondary btn-sm" onclick="downloadExcel();" data-bind="visible: !$root.isChart() || $root.ShowDataWithGraph()" title="Export to Excel">
+                       <button class="btn btn-secondary btn-sm" data-bind="visible: !$root.isChart() || $root.ShowDataWithGraph(), click: downloadExcel($root.currentSql(), $root.currentConnectKey(), $root.ReportName(), $root.allExpanded(), $root.getExpandSqls(), $root.getColumnDetails(), $root.IncludeSubTotal());" " title="Export to Excel">
                             <span class="fa fa-file-excel-o"></span>
                         </button>
                     </div>

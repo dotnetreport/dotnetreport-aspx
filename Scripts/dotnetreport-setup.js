@@ -197,7 +197,7 @@
 		}
 
 		ajaxcall({
-			url: "/Setup/SearchProcedure",
+			url: "/DotNetReport/ReportService.asmx/SearchProcedure",
 			type: 'POST',
 			data: JSON.stringify({
 				value: self.searchProcedureTerm(),
@@ -205,6 +205,7 @@
 				dataConnectKey: self.keys.DatabaseApiKey
 			})
 		}).done(function (result) {
+			if (result.d) result = result.d;
 			_.forEach(result, function (s) {
 				_.forEach(s.Columns, function (c) {
 					c.DisplayName = ko.observable(c.DisplayName);

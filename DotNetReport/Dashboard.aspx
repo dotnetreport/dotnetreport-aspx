@@ -105,7 +105,7 @@
         <div class="card" data-bind="attr: {class: 'card ' + panelStyle + ' grid-stack-item-content'}" style="overflow-y: hidden;">
             <div class="card-header">
                 <span data-bind="text: ReportName"></span>
-                <a class="btn btn-default btn-xs pull-right" href="#" data-bind="click: downloadExcel(currentSql(), currentConnectKey(), ReportName())">
+                <a class="btn btn-default btn-xs pull-right" href="#" data-bind="click: downloadExcel(currentSql(), currentConnectKey(), ReportName(), allExpanded(), getExpandSqls(), getColumnDetails(), IncludeSubTotal())">
                         <span class="fa fa-file-excel-o"></span>
                 </a>
                 <!-- ko if: FlyFilters().length> 0-->
@@ -204,12 +204,16 @@
         });
     });
 
-    function downloadExcel(currentSql, currentConnectKey, reportName) {
+    function downloadExcel(currentSql, currentConnectKey, reportName, allExpanded, expandSqls, columnDetails, includeSubTotals) {
         if (!currentSql) return;
         redirectToReport("/DotNetReport/ReportService.asmx/DownloadExcel", {
             reportSql: unescape(currentSql),
             connectKey: unescape(currentConnectKey),
-            reportName: unescape(reportName)
+            reportName: unescape(reportName),
+            allExpanded: unescape(allExpanded),
+            expandSqls: unescape(expandSqls),
+            columnDetails: unescape(columnDetails),
+            includeSubTotals: unescape(includeSubTotals)
         }, true, false);
     }
     </script>

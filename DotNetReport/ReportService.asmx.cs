@@ -179,9 +179,11 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
 
         [WebMethod(EnableSession = true)]
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
-        public DotNetReportResultModel RunReport(string reportSql, string connectKey, string reportType, int pageNumber = 1, int pageSize = 50, string sortBy = null, bool desc = false, string ReportSeries = null)
+        public DotNetReportResultModel RunReport(string reportSql, string connectKey, string reportType, int pageNumber = 1, int pageSize = 50, string sortBy = null, bool desc = false, string reportSeries = null)
         {
             var sql = "";
+            var sqlCount = "";
+            int totalRecords = 0;
 
             try
             {
@@ -190,7 +192,6 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
                     throw new Exception("Query not found");
                 }
                 var allSqls = reportSql.Split(new string[] { "%2C" }, StringSplitOptions.RemoveEmptyEntries);
-                var dt = new DataTable();
                 var dtPaged = new DataTable();
                 var dtCols = 0;
 
@@ -198,7 +199,7 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
                 List<string> sqlFields = new List<string>();
                 for (int i = 0; i < allSqls.Length; i++)
                 {
-                    sql = DotNetReportHelper.Decrypt(allSqls[i]);
+                    sql = DotNetReportHelper.Decrypt(HttpUtility.HtmlDecode(allSqls[i]));
                     if (!sql.StartsWith("EXEC"))
                     {
 
@@ -206,6 +207,9 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
                         sqlFields = Regex.Split(sqlSplit, "], (?![^\\(]*?\\))").Where(x => x != "CONVERT(VARCHAR(3)")
                             .Select(x => x.EndsWith("]") ? x : x + "]")
                             .ToList();
+
+                        var sqlFrom = $"SELECT {sqlFields[0]} {sql.Substring(sql.IndexOf("FROM"))}";
+                        sqlCount = $"SELECT COUNT(*) FROM ({(sqlFrom.Contains("ORDER BY") ? sqlFrom.Substring(0, sqlFrom.IndexOf("ORDER BY")) : sqlFrom)}) as countQry";
 
                         if (!String.IsNullOrEmpty(sortBy))
                         {
@@ -226,36 +230,44 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
                                 sql = sql.Substring(0, sql.IndexOf("ORDER BY")) + "ORDER BY " + sortBy + (desc ? " DESC" : "");
                             }
                         }
+
+                        if (sql.Contains("ORDER BY"))
+                            sql = sql + $" OFFSET {(pageNumber - 1) * pageSize} ROWS FETCH NEXT {pageSize} ROWS ONLY";
                     }
                     // Execute sql
-                    var dtRun = new DataTable();
                     var dtPagedRun = new DataTable();
                     using (var conn = new OleDbConnection(DotNetReportHelper.GetConnectionString(connectKey)))
                     {
                         conn.Open();
-                        var command = new OleDbCommand(sql, conn);
-                        var adapter = new OleDbDataAdapter(command);
-                        adapter.Fill(dtRun);
-                        dtPagedRun = (dtRun.Rows.Count > 0) ? dtPagedRun = dtRun.AsEnumerable().Skip((pageNumber - 1) * pageSize).Take(pageSize).CopyToDataTable() : dtRun;
+                        var command = new OleDbCommand(sqlCount, conn);
+                        if (!sql.StartsWith("EXEC")) totalRecords = (int)command.ExecuteScalar();
 
+                        command = new OleDbCommand(sql, conn);
+                        var adapter = new OleDbDataAdapter(command);
+                        adapter.Fill(dtPagedRun);
+                        if (sql.StartsWith("EXEC"))
+                        {
+                            totalRecords = dtPagedRun.Rows.Count;
+                            if (dtPagedRun.Rows.Count > 0)
+                                dtPagedRun = dtPagedRun.AsEnumerable().Skip((pageNumber - 1) * pageSize).Take(pageSize).CopyToDataTable();
+                        }
                         if (!sqlFields.Any())
                         {
-                            foreach (DataColumn c in dtRun.Columns) { sqlFields.Add($"{c.ColumnName} AS {c.ColumnName}"); }
+                            foreach (DataColumn c in dtPagedRun.Columns) { sqlFields.Add($"{c.ColumnName} AS {c.ColumnName}"); }
                         }
 
                         string[] series = { };
                         if (i == 0)
                         {
-                            dt = dtRun;
                             dtPaged = dtPagedRun;
-                            dtCols = dtRun.Columns.Count;
+                            dtCols = dtPagedRun.Columns.Count;
                             fields.AddRange(sqlFields);
                         }
                         else if (i > 0)
                         {
                             // merge in to dt
-                            if (!string.IsNullOrEmpty(ReportSeries))
-                                series = ReportSeries.Split(new string[] { "%2C" }, StringSplitOptions.RemoveEmptyEntries);
+                            if (!string.IsNullOrEmpty(reportSeries))
+                                series = reportSeries.Split(new string[] { "%2C", "," }, StringSplitOptions.RemoveEmptyEntries);
 
                             var j = 1;
                             while (j < dtPagedRun.Columns.Count)
@@ -294,7 +306,7 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
                     }
                 }
 
-                sql = DotNetReportHelper.Decrypt(allSqls[0]);
+                sql = DotNetReportHelper.Decrypt(HttpUtility.HtmlDecode(allSqls[0]));
                 var model = new DotNetReportResultModel
                 {
                     ReportData = DataTableToDotNetReportDataModel(dtPaged, fields),
@@ -305,8 +317,8 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
                     {
                         CurrentPage = pageNumber,
                         PageSize = pageSize,
-                        TotalRecords = dt.Rows.Count,
-                        TotalPages = (int)((dt.Rows.Count / pageSize) + 1)
+                        TotalRecords = totalRecords,
+                        TotalPages = (int)(totalRecords == pageSize ? (totalRecords / pageSize) : (totalRecords / pageSize) + 1)
                     }
                 };
 
@@ -356,10 +368,11 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
 
 
         [WebMethod(EnableSession = true)]
-        public void DownloadExcel(string reportSql, string connectKey, string reportName)
+        public void DownloadExcel(string reportSql, string connectKey, string reportName, bool allExpanded, string expandSqls, string columnDetails = null, bool includeSubtotal = false)
         {
+            var columns = columnDetails == null ? new List<ReportHeaderColumn>() : JsonConvert.DeserializeObject<List<ReportHeaderColumn>>(columnDetails);
 
-            var excel = DotNetReportHelper.GetExcelFile(reportSql, connectKey, reportName);
+            var excel = DotNetReportHelper.GetExcelFile(reportSql, connectKey, reportName, allExpanded, expandSqls.Split(',').ToList(), columns, includeSubtotal);
             Context.Response.ClearContent();
 
             Context.Response.AddHeader("content-disposition", "attachment; filename=" + reportName + ".xlsx");
@@ -393,6 +406,20 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
             Context.Response.ContentType = "application/pdf";
             Context.Response.Write(pdf);
             Context.Response.End();
+        }
+
+        [WebMethod(EnableSession = true)]
+        public void DownloadCsv(string reportSql, string connectKey, string reportName)
+        {
+            var excel = DotNetReportHelper.GetCSVFile(reportSql, connectKey);
+
+            Context.Response.ClearContent();
+
+            Context.Response.AddHeader("content-disposition", "attachment; filename=" + reportName + ".csv");
+            Context.Response.ContentType = "text/csv";
+            Context.Response.Write(excel);
+            Context.Response.End();
+
         }
 
         [WebMethod(EnableSession = true)]
@@ -631,7 +658,8 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
                 int count = 1;
                 foreach (DataRow dr in dtProcedures.Rows)
                 {
-                    string procName = dr["ROUTINE_NAME"].ToString();
+                    var procName = dr["ROUTINE_NAME"].ToString();
+                    var procSchema = dr["ROUTINE_SCHEMA"].ToString();
                     cmd = new OleDbCommand(procName, conn);
                     cmd.CommandType = CommandType.StoredProcedure;
                     // Get the parameters.
@@ -655,7 +683,7 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
                         }
                     }
                     DataTable dt = new DataTable();
-                    cmd = new OleDbCommand($"[{procName}]", conn);
+                    cmd = new OleDbCommand($"[{procSchema}].[{procName}]", conn);
                     cmd.CommandType = CommandType.StoredProcedure;
                     foreach (var data in parameterViewModels)
                     {

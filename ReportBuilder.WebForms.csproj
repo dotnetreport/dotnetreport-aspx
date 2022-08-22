@@ -248,6 +248,7 @@
     <Content Include="Scripts\core.js" />
     <Content Include="Scripts\core.min.js" />
     <Content Include="Scripts\dotnetreport-setup.js" />
+    <Content Include="Scripts\dotnetreport.js" />
     <Content Include="Scripts\esm\popper-utils.js" />
     <Content Include="Scripts\esm\popper-utils.min.js" />
     <Content Include="Scripts\esm\popper.js" />
