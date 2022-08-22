@@ -560,7 +560,7 @@
     <script src="../Scripts/dotnetreport-helper.js"></script>
     <script src="../Scripts/lodash.min.js"></script>
     <script src="../Scripts/fabric.min.js"></script>
-    <script src="../Scripts/dotnetreport.js?v=4.3.0"></script>
+    <script src="../Scripts/dotnetreport.min.js?v=4.3.4"></script>
     <asp:ContentPlaceHolder ID="scripts" runat="server">
     </asp:ContentPlaceHolder>
 </body>

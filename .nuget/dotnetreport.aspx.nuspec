@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
 	<metadata>
 		<id>dotNetReport.aspx</id>
-		<version>4.2.6</version>
+		<version>4.3.4-beta</version>
 		<authors>dotnetReport Builder</authors>
 		<owners>dotnetReport Builder</owners>
 		<projectUrl>https://dotnetreport.com/</projectUrl>
@@ -34,11 +34,11 @@
 		</dependencies>
 	</metadata>
 	<files>
-		<file src="..\DotNetReport\readme.txt" target="" />
-		<file src="..\DotNetReport\Content\img\report-logo.png" target="Content\Content\img\report-logo.png" />
-		<file src="..\DotNetReport\Content\bootstrap-mvc-validation.css" target="Content\Content\bootstrap-mvc-validation.css" />
-		<file src="..\DotNetReport\Content\bootstrap-editable.css" target="Content\Content\bootstrap-editable.css" />
-		<file src="..\DotNetReport\Content\dotnetreport.css" target="Content\Content\dotnetreport.css" />
+		<file src="..\readme.txt" target="" />
+		<file src="..\Content\img\report-logo.png" target="Content\Content\img\report-logo.png" />
+		<file src="..\Content\bootstrap-mvc-validation.css" target="Content\Content\bootstrap-mvc-validation.css" />
+		<file src="..\Content\bootstrap-editable.css" target="Content\Content\bootstrap-editable.css" />
+		<file src="..\Content\dotnetreport.css" target="Content\Content\dotnetreport.css" />
 		<file src="..\DotNetReport\Index.aspx" target="Content\DotNetReport\Index.aspx" />
 		<file src="..\DotNetReport\Index.aspx.cs" target="Content\DotNetReport\Index.aspx.cs" />
 		<file src="..\DotNetReport\Index.aspx.designer.cs" target="Content\DotNetReport\Index.aspx.designer.cs" />
@@ -56,14 +56,14 @@
 		<file src="..\DotNetReport\Dashboard.aspx" target="Content\DotNetReport\Dashboard.aspx" />
 		<file src="..\DotNetReport\Dashboard.aspx.cs" target="Content\DotNetReport\Dashboard.aspx.cs" />
 		<file src="..\DotNetReport\Dashboard.aspx.designer.cs" target="Content\DotNetReport\Dashboard.aspx.designer.cs" />
-		<file src="..\DotNetReport\Models\DotNetReportModel.cs" target="Content\Models\DotNetReportModel.cs" />
-		<file src="..\DotNetReport\Jobs\DotNetReportJob.cs" target="Content\Jobs\DotNetReportJob.cs" />
-		<file src="..\DotNetReport\Scripts\dotnetreport-helper.js" target="Content\Scripts\dotnetreport-helper.js" />
-		<file src="..\DotNetReport\Scripts\dotnetreport-setup.js" target="Content\Scripts\dotnetreport-setup.js" />
-		<file src="..\DotNetReport\Scripts\dotnetreport.min.js" target="Content\Scripts\dotnetreport.min.js" />
-		<file src="..\DotNetReport\Scripts\bootstrap-editable.min.js" target="Content\Scripts\bootstrap-editable.min.js" />
-		<file src="..\DotNetReport\Scripts\knockout.x-editable.min.js" target="Content\Scripts\knockout.x-editable.min.js" />
-		<file src="..\DotNetReport\Scripts\fabric.min.js" target="Content\Scripts\fabric.min.js" />
-		<file src="..\DotNetReport\web.config.install.xdt" target="Content\web.config.install.xdt" />
+		<file src="..\Models\DotNetReportModel.cs" target="Content\Models\DotNetReportModel.cs" />
+		<file src="..\Jobs\DotNetReportJob.cs" target="Content\Jobs\DotNetReportJob.cs" />
+		<file src="..\Scripts\dotnetreport-helper.js" target="Content\Scripts\dotnetreport-helper.js" />
+		<file src="..\Scripts\dotnetreport-setup.js" target="Content\Scripts\dotnetreport-setup.js" />
+		<file src="..\Scripts\dotnetreport.min.js" target="Content\Scripts\dotnetreport.min.js" />
+		<file src="..\Scripts\bootstrap-editable.min.js" target="Content\Scripts\bootstrap-editable.min.js" />
+		<file src="..\Scripts\knockout.x-editable.min.js" target="Content\Scripts\knockout.x-editable.min.js" />
+		<file src="..\Scripts\fabric.min.js" target="Content\Scripts\fabric.min.js" />
+		<file src="..\web.config.install.xdt" target="Content\web.config.install.xdt" />
 	</files>
 </package>
