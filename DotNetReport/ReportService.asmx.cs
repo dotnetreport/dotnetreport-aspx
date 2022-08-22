@@ -370,12 +370,12 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
         [WebMethod(EnableSession = true)]
         public void DownloadExcel(string reportSql, string connectKey, string reportName, bool allExpanded, string expandSqls, string columnDetails = null, bool includeSubtotal = false)
         {
-            var columns = columnDetails == null ? new List<ReportHeaderColumn>() : JsonConvert.DeserializeObject<List<ReportHeaderColumn>>(columnDetails);
+            var columns = columnDetails == null ? new List<ReportHeaderColumn>() : JsonConvert.DeserializeObject<List<ReportHeaderColumn>>(HttpUtility.UrlDecode(columnDetails));
 
-            var excel = DotNetReportHelper.GetExcelFile(reportSql, connectKey, reportName, allExpanded, expandSqls.Split(',').ToList(), columns, includeSubtotal);
+            var excel = DotNetReportHelper.GetExcelFile(reportSql, connectKey, HttpUtility.UrlDecode(reportName), allExpanded, HttpUtility.UrlDecode(expandSqls).Split(',').ToList(), columns, includeSubtotal);
             Context.Response.ClearContent();
 
-            Context.Response.AddHeader("content-disposition", "attachment; filename=" + reportName + ".xlsx");
+            Context.Response.AddHeader("content-disposition", "attachment; filename=" + HttpUtility.UrlDecode(reportName) + ".xlsx");
             Context.Response.ContentType = "application/vnd.ms-excel";
             Context.Response.BinaryWrite(excel);
             Context.Response.End();
@@ -386,22 +386,24 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
         public void DownloadXml(string reportSql, string connectKey, string reportName)
         {
 
-            var xml = DotNetReportHelper.GetXmlFile(reportSql, connectKey, reportName);
+            var xml = DotNetReportHelper.GetXmlFile(reportSql, HttpUtility.UrlDecode(connectKey), HttpUtility.UrlDecode(reportName));
             Context.Response.ClearContent();
 
-            Context.Response.AddHeader("content-disposition", "attachment; filename=" + reportName + ".xml");
+            Context.Response.AddHeader("content-disposition", "attachment; filename=" + HttpUtility.UrlDecode(reportName) + ".xml");
             Context.Response.ContentType = "application/xml";
             Context.Response.Write(xml);
             Context.Response.End();
 
         }
 
+
         [WebMethod(EnableSession = true)]
-        public async Task DownloadPdf(string printUrl, int reportId, string reportSql, string connectKey, string reportName)
+        public void DownloadPdf(string printUrl, int reportId, string reportSql, string connectKey, string reportName, bool expandAll)
         {
             reportSql = HttpUtility.HtmlDecode(reportSql);
             var settings = GetSettings();
-            var pdf = await DotNetReportHelper.GetPdfFile(printUrl, reportId, reportSql, connectKey, reportName, settings.UserId, settings.ClientId, string.Join(",", settings.CurrentUserRole));
+            var dataFilters = settings.DataFilters != null ? JsonConvert.SerializeObject(settings.DataFilters) : "";
+            var pdf = DotNetReportHelper.GetPdfFile(HttpUtility.UrlDecode(printUrl), reportId, reportSql, HttpUtility.UrlDecode(connectKey), HttpUtility.UrlDecode(reportName), settings.UserId, settings.ClientId, string.Join(",", settings.CurrentUserRole), dataFilters, expandAll);
             Context.Response.AddHeader("content-disposition", "attachment; filename=" + reportName + ".pdf");
             Context.Response.ContentType = "application/pdf";
             Context.Response.Write(pdf);
@@ -411,11 +413,10 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
         [WebMethod(EnableSession = true)]
         public void DownloadCsv(string reportSql, string connectKey, string reportName)
         {
-            var excel = DotNetReportHelper.GetCSVFile(reportSql, connectKey);
+            var excel = DotNetReportHelper.GetCSVFile(reportSql, HttpUtility.UrlDecode(connectKey));
 
             Context.Response.ClearContent();
-
-            Context.Response.AddHeader("content-disposition", "attachment; filename=" + reportName + ".csv");
+            Context.Response.AddHeader("content-disposition", "attachment; filename=" + HttpUtility.UrlDecode(reportName) + ".csv");
             Context.Response.ContentType = "text/csv";
             Context.Response.Write(excel);
             Context.Response.End();

@@ -1,4 +1,4 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/DotNetReport/ReportLayout.Master" AutoEventWireup="true" CodeBehind="Report.aspx.cs" Inherits="ReportBuilder.Demo.WebForms.DotNetReport.Report" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/DotNetReport/ReportLayout.Master" AutoEventWireup="true" CodeBehind="Report.aspx.cs" Inherits="ReportBuilder.Demo.WebForms.DotNetReport.Report" Async="true" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">    
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="scripts" runat="server">
@@ -28,7 +28,7 @@
                 connectKey: unescape(currentConnectKey),
                 reportName: unescape(reportName),
                 expandAll: unescape(allExpanded),
-                printUrl: "<%= Request.Url.Scheme + "/DotNetReport/ReportPrint.aspx" %>"
+                printUrl: "<%=  string.Format("{0}://{1}", Request.Url.Scheme, Request.Url.Authority) + "/DotNetReport/ReportPrint.aspx" %>"
             }, true, false);
         }
 
