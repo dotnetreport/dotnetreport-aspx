@@ -413,9 +413,10 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
         }
 
         [WebMethod(EnableSession = true)]
-        public void DownloadCsv(string reportSql, string connectKey, string reportName)
+        public void DownloadCsv(string reportSql, string connectKey, string reportName, string columnDetails = null, bool includeSubtotal = false)
         {
-            var excel = DotNetReportHelper.GetCSVFile(reportSql, HttpUtility.UrlDecode(connectKey));
+            var columns = columnDetails == null ? new List<ReportHeaderColumn>() : JsonConvert.DeserializeObject<List<ReportHeaderColumn>>(HttpUtility.UrlDecode(columnDetails));
+            var excel = DotNetReportHelper.GetCSVFile(reportSql, HttpUtility.UrlDecode(connectKey), columns, includeSubtotal);
 
             Context.Response.ClearContent();
             Context.Response.AddHeader("content-disposition", "attachment; filename=" + HttpUtility.UrlDecode(reportName) + ".csv");

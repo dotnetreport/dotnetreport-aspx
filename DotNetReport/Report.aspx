@@ -46,12 +46,14 @@
             }, true, false);
         }
 
-        function downloadCsv(currentSql, currentConnectKey, reportName) {
+        function downloadCsv(currentSql, currentConnectKey, reportName, columnDetails, includeSubTotals) {
             if (!currentSql) return;
             redirectToReport("/DotNetReport/ReportService.asmx/DownloadCsv", {
                 reportSql: unescape(currentSql),
                 connectKey: unescape(currentConnectKey),
-                reportName: unescape(reportName)
+                reportName: unescape(reportName),
+                columnDetails: unescape(columnDetails),
+                includeSubTotal: unescape(includeSubTotals)
             }, true, false);
         }
 
@@ -136,7 +138,7 @@
                         </a>
                     </li>
                     <li class="dropdown-item">
-                        <a href="#" data-bind="click: downloadCsv(currentSql(), currentConnectKey(), ReportName())">
+                        <a href="#" data-bind="click: downloadCsv(currentSql(), currentConnectKey(), ReportName(), getColumnDetails(), IncludeSubTotal())">
                             <span class="fa fa-file-excel-o"></span> Csv
                         </a>
                     </li>

@@ -779,7 +779,7 @@ namespace ReportBuilder.Web.Models
                 }
             }
         }
-        public static byte[] GetCSVFile(string reportSql, string connectKey)
+        public static byte[] GetCSVFile(string reportSql, string connectKey, List<ReportHeaderColumn> columns = null, bool includeSubtotal = false)
         {
             var sql = Decrypt(reportSql);
 
@@ -792,12 +792,10 @@ namespace ReportBuilder.Web.Models
                 var adapter = new OleDbDataAdapter(command);
 
                 adapter.Fill(dt);
-
+                var subTotals = new decimal[dt.Columns.Count];
 
                 //Build the CSV file data as a Comma separated string.
                 string csv = string.Empty;
-
-
                 foreach (DataColumn column in dt.Columns)
                 {
                     //Add the Header row for CSV file.
@@ -809,13 +807,46 @@ namespace ReportBuilder.Web.Models
 
                 foreach (DataRow row in dt.Rows)
                 {
+                    var i = 0;
                     foreach (DataColumn column in dt.Columns)
                     {
+                        var value = row[column.ColumnName].ToString();
+                        var formatColumn = GetColumnFormatting(column, columns, ref value);
+
+                        if (includeSubtotal)
+                        {
+                            if (formatColumn.isNumeric && !(formatColumn?.dontSubTotal ?? false))
+                            {
+                                subTotals[i] += Convert.ToDecimal(row[column.ColumnName]);
+                            }
+                        }
+
                         //Add the Data rows.
-                        csv += row[column.ColumnName].ToString().Replace(",", ";") + ',';
+                        csv += $"{(i==0 ? "" : ",")}\"{value}\"";
+                        i++;
                     }
 
                     //Add new line.
+                    csv += "\r\n";
+                }
+
+                if (includeSubtotal)
+                {
+                    for (int j = 0; j < dt.Columns.Count; j++)
+                    {
+                        var value = subTotals[j].ToString();
+                        var dc = dt.Columns[j];
+                        var formatColumn = GetColumnFormatting(dc, columns, ref value);
+                        if (formatColumn.isNumeric && !(formatColumn?.dontSubTotal ?? false))
+                        {
+                            csv += $"{(j == 0 ? "" : ",")}\"{value}\"";
+                        }
+                        else
+                        {
+                            csv += $"{(j == 0 ? "" : ",")}\"\"";
+                        }
+                    }
+
                     csv += "\r\n";
                 }
 
