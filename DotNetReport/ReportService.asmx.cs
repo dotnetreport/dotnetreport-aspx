@@ -405,7 +405,7 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
             reportName = HttpUtility.UrlDecode(reportName);
             var columns = columnDetails == null ? new List<ReportHeaderColumn>() : JsonConvert.DeserializeObject<List<ReportHeaderColumn>>(HttpUtility.UrlDecode(columnDetails));
 
-            var pdf = DotNetReportHelper.GetPdfFile(reportSql, connectKey, reportName, chartData);
+            var pdf = DotNetReportHelper.GetPdfFile(reportSql, connectKey, reportName, chartData, columns, includeSubtotal);
             Context.Response.AddHeader("content-disposition", "attachment; filename=" + reportName + ".pdf");
             Context.Response.ContentType = "application/pdf";
             Context.Response.BinaryWrite(pdf);

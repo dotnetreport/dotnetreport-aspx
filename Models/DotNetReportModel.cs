@@ -302,6 +302,9 @@ namespace ReportBuilder.Web.Models
         public string fieldAlign { get; set; }
         public string fieldFormat { get; set; }
         public bool dontSubTotal { get; set; }
+
+        public bool isNumeric { get; set; }
+        public bool isCurrency { get; set; }
     }
 
     public class DotNetReportHelper
@@ -558,6 +561,36 @@ namespace ReportBuilder.Web.Models
 
         }
 
+        public static ReportHeaderColumn GetColumnFormatting(DataColumn dc, List<ReportHeaderColumn> columns, ref string value)
+        {
+            var isCurrency = false;
+            var isNumeric = dc.DataType.Name.StartsWith("Int") || dc.DataType.Name == "Double" || dc.DataType.Name == "Decimal";
+            var formatColumn = columns?.FirstOrDefault(x => dc.ColumnName.StartsWith(x.fieldName));
+
+            if (dc.DataType == typeof(decimal) || (formatColumn != null && (formatColumn.fieldFormat == "Decimal" || formatColumn.fieldFormat == "Double")))
+            {
+                isNumeric = true;
+                value = Convert.ToDecimal(value).ToString("###,###,##0.00");
+            }
+            if (formatColumn != null && formatColumn.fieldFormat == "Currency")
+            {
+                value = Convert.ToDecimal(value).ToString("C");
+                isCurrency = true;
+            }
+
+            if (formatColumn != null)
+            {
+                formatColumn.isNumeric = isNumeric;
+                formatColumn.isCurrency = isCurrency;
+            }
+
+            return formatColumn ?? new ReportHeaderColumn
+            {
+                isNumeric = isNumeric,
+                isCurrency = isCurrency
+            };
+        }
+
         public static byte[] GetPdfFile(string reportSql, string connectKey, string reportName, string chartData = null, List<ReportHeaderColumn> columns = null, bool includeSubtotal = false)
         {
             var sql = Decrypt(reportSql);
@@ -570,6 +603,8 @@ namespace ReportBuilder.Web.Models
 
                 adapter.Fill(dt);
             }
+
+            var subTotals = new decimal[dt.Columns.Count];
             Document document = new Document();
             using (var ms = new MemoryStream())
             {
@@ -595,17 +630,60 @@ namespace ReportBuilder.Web.Models
                 {
                     for (int j = 0; j < dt.Columns.Count; j++)
                     {
-                        PdfPCell cell = new PdfPCell(new Phrase(dt.Rows[i][j].ToString()));
+                        var value = dt.Rows[i][j].ToString();
+                        var dc = dt.Columns[j];
+                        var formatColumn = GetColumnFormatting(dc, columns, ref value);
+
+                        PdfPCell cell = new PdfPCell(new Phrase(value));
                         //Align the cell in the center
-                        cell.HorizontalAlignment = PdfPCell.ALIGN_LEFT;
+                        cell.HorizontalAlignment = formatColumn.isNumeric ? PdfPCell.ALIGN_RIGHT : PdfPCell.ALIGN_LEFT;
                         cell.VerticalAlignment = PdfPCell.ALIGN_LEFT;
                         cell.BorderColor = BaseColor.LIGHT_GRAY;
                         cell.BorderWidth = 1f;
+
+                        if (formatColumn != null)
+                        {
+                            cell.HorizontalAlignment = formatColumn.fieldAlign == "Right" || (formatColumn.isNumeric && (formatColumn.fieldAlign == "Auto" || string.IsNullOrEmpty(formatColumn.fieldAlign))) ? PdfPCell.ALIGN_RIGHT : formatColumn.fieldAlign == "Center" ? PdfPCell.ALIGN_MIDDLE : PdfPCell.ALIGN_LEFT;
+                        }
+
+                        if (includeSubtotal)
+                        {
+                            if (formatColumn.isNumeric && !(formatColumn?.dontSubTotal ?? false))
+                            {
+                                subTotals[j] += Convert.ToDecimal(dt.Rows[i][j]); 
+                            }
+                        }
+
                         table.AddCell(cell);
                     }
                 }
+
+                if (includeSubtotal)
+                {
+                    for (int j = 0; j < dt.Columns.Count; j++)
+                    {
+                        PdfPCell cell = null;
+                        var value = subTotals[j].ToString();
+                        var dc = dt.Columns[j];
+                        var formatColumn = GetColumnFormatting(dc, columns, ref value);
+                        if (formatColumn.isNumeric && !(formatColumn?.dontSubTotal ?? false))
+                        {
+                            cell = new PdfPCell(new Phrase(value));                            
+                        } else
+                        {
+                            cell = new PdfPCell(new Phrase(" "));
+                        }
+                        cell.HorizontalAlignment = formatColumn.isNumeric ? PdfPCell.ALIGN_RIGHT : PdfPCell.ALIGN_LEFT;
+                        cell.VerticalAlignment = PdfPCell.ALIGN_LEFT;
+                        cell.BorderColor = BaseColor.BLACK;
+                        cell.BorderWidth = 1f;
+
+                        table.AddCell(cell);
+                    }
+                }
+
                 //Create a PdfReader bound to that byte array
-                if (!string.IsNullOrEmpty(chartData))
+                if (!string.IsNullOrEmpty(chartData) && chartData != "undefined")
                 {
                     byte[] sPDFDecoded = Convert.FromBase64String(chartData.Substring(chartData.LastIndexOf(',') + 1));
                     var image = Image.GetInstance(sPDFDecoded);
