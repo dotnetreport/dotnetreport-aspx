@@ -109,10 +109,14 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
 
         [WebMethod(EnableSession = true)]
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
-        public object PostReportApi(PostReportApiCallMode data)
+        public object PostReportApi(string method, string headerJson, bool useReportHeader)
         {
-            string method = data.method;
-            return CallReportApi(method, JsonConvert.SerializeObject(data));
+            return CallReportApi(method, JsonConvert.SerializeObject(new PostReportApiCallMode
+            {
+                method = method,
+                headerJson = headerJson,
+                useReportHeader = useReportHeader
+            }));
         }
 
         [WebMethod(EnableSession = true)]
