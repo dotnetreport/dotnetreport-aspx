@@ -62,6 +62,7 @@ function formulaFieldViewModel(args) {
 	args = args || {};
 	var self = this;
 
+	self.tableId = ko.observable(args.tableId);
 	self.fieldId = ko.observable(args.fieldId);
 	self.isParenthesesStart = ko.observable(args.isParenthesesStart);
 	self.isParenthesesEnd = ko.observable(args.isParenthesesEnd);
@@ -1373,7 +1374,7 @@ var reportViewModel = function (options) {
 		if (!value) return;
 		var result = self.formulaOnlyHasDateFields();
 		if (result && ['Days', 'Hours', 'Minutes', 'Seconds'].indexOf(self.formulaDataFormat()) < 0) self.formulaDataFormat('Days');
-		if (!result && ['String', 'Integer', 'Double'].indexOf(self.formulaDataFormat()) < 0) self.formulaDataFormat('String');
+		if (!result && ['String', 'Integer', 'Double'].indexOf(self.formulaDataFormat()) < 0) self.formulaDataFormat('String');		
 	});
 
 	self.formulaHasConstantValue = ko.computed(function () {
@@ -1453,6 +1454,37 @@ var reportViewModel = function (options) {
 		self.clearFormulaField();
 	});
 
+	self.editFormulaField = function (field) {
+		self.isFormulaField(true);
+		self.formulaFields([]);	
+
+		if (field.formulaItems().length > 0) {
+			var tableId = _.find(field.formulaItems(), function (x) { return x.tableId() > 0 }).tableId();
+			var match = _.find(self.Tables(), {tableId: tableId});
+			if (tableId && match) {
+				self.SelectedTable(match);
+				self.loadTableFields(match).done(function (x) {
+					var formulaItems = field.formulaItems();
+					_.forEach(formulaItems, function (e) {
+						var fieldMatch = _.find(self.ChooseFields(), function (m) { return m.fieldId == e.fieldId() });
+						if (!fieldMatch) {
+							var field = self.getEmptyFormulaField();
+							var fieldMatch = self.setupField(Object.assign({}, field));
+                        }
+						fieldMatch.setupFormula = e;
+						self.formulaFields.push(fieldMatch);						
+					});
+
+					self.formulaFieldLabel(field.fieldName);
+					self.formulaDataFormat(field.fieldFormat());
+					self.formulaDecimalPlaces(field.decimalPlaces());	
+				});
+            }
+		}
+
+		self.SelectedFields.remove(field);		
+    }
+
 	self.saveFormulaField = function () {
 
 		if (self.formulaFields().length == 0) {
@@ -1464,6 +1496,10 @@ var reportViewModel = function (options) {
 			toastr.error("Please correct validation issues");
 			return;
 		}
+
+		_.forEach(self.formulaFields(), function (e) {
+			e.tableId = e.tableId || self.SelectedTable().tableId;
+		});
 
 		var field = self.getEmptyFormulaField();
 		
@@ -2464,6 +2500,7 @@ var reportViewModel = function (options) {
 		var formulaItems = [];
 		_.forEach(e.formulaItems || [], function (e) {
 			formulaItems.push(new formulaFieldViewModel({
+				tableId: e.tableId,
 				fieldId: e.fieldId || 0,
 				isParenthesesStart: e.setupFormula ? e.setupFormula.isParenthesesStart() : e.isParenthesesStart,
 				isParenthesesEnd: e.setupFormula ? e.setupFormula.isParenthesesEnd() : e.isParenthesesEnd,
@@ -2477,6 +2514,9 @@ var reportViewModel = function (options) {
 
 		if (e.isFormulaField()) {
 			self.additionalAggregateOptions(e, e.fieldFormat());
+			e.editFormulaField = function () {
+				self.editFormulaField(e);
+            }
         }
 
 		e.setupLinkField = function () {
