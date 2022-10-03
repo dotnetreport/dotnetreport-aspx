@@ -138,7 +138,7 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
         {
             using (var client = new HttpClient())
             {
-                var response = await client.GetAsync(String.Format("{0}/ReportApi/GetTables?account={1}&dataConnect={2}&clientId=", ConfigurationManager.AppSettings["dotNetReport.apiUrl"], accountKey, dataConnectKey));
+                var response = await client.GetAsync(String.Format("{0}/ReportApi/GetTables?account={1}&dataConnect={2}&clientId=&includeDoNotDisplay=true", ConfigurationManager.AppSettings["dotNetReport.apiUrl"], accountKey, dataConnectKey));
                 response.EnsureSuccessStatusCode();
                 var content = await response.Content.ReadAsStringAsync();
                 dynamic values = JsonConvert.DeserializeObject<dynamic>(content);
@@ -152,6 +152,7 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
                         AccountIdField = item.accountIdField,
                         TableName = item.tableDbName,
                         DisplayName = item.tableName,
+                        DoNotDisplay = item.doNotDisplay,
                         AllowedRoles = item.tableRoles.ToObject<List<string>>()
                     });
 
@@ -254,7 +255,8 @@ namespace ReportBuilder.Demo.WebForms.DotNetReport
                         Selected = matchTable != null,
                         Columns = new List<ColumnViewModel>(),
                         AllowedRoles = matchTable != null ? matchTable.AllowedRoles : new List<string>(),
-                        AccountIdField = matchTable != null ? matchTable.AccountIdField : ""
+                        AccountIdField = matchTable != null ? matchTable.AccountIdField : "",
+                        DoNotDisplay = matchTable != null ? matchTable.DoNotDisplay : false,
                     };
 
                     var dtField = conn.GetOleDbSchemaTable(OleDbSchemaGuid.Columns, new object[] { null, null, tableName });

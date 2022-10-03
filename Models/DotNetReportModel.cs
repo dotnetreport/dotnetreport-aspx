@@ -98,6 +98,7 @@ namespace ReportBuilder.Web.Models
         public bool Selected { get; set; }
         public bool IsView { get; set; }
         public int DisplayOrder { get; set; }
+        public bool DoNotDisplay { get; set; }
         public string AccountIdField { get; set; }
 
         public List<ColumnViewModel> Columns { get; set; }
