@@ -1390,6 +1390,28 @@ var reportViewModel = function (options) {
 		return result;
 	});
 
+	self.additionalAggregateOptions = function (field, fieldFormat) {
+		var response = [];
+		switch (fieldFormat) {
+			case "Decimal":
+			case "Currency":
+			case "Double":
+			case "Integer":
+			case "Number":
+			case "Days":
+			case "Hours":
+			case "Minutes":
+			case "Seconds":
+				response.push("Sum");
+				response.push("Average");
+				response.push("Max");
+				response.push("Min");
+				break;
+		}
+	
+		field.fieldAggregate = field.fieldAggregate.concat(response);
+		field.fieldAggregateWithDrilldown = field.fieldAggregateWithDrilldown.concat(response);
+    }
 
 	self.getEmptyFormulaField = function () {
 		return {
@@ -1444,7 +1466,7 @@ var reportViewModel = function (options) {
 		}
 
 		var field = self.getEmptyFormulaField();
-
+		
 		self.SelectedFields.push(self.setupField(field));
 		self.clearFormulaField();
 		self.isFormulaField(false);
@@ -2452,6 +2474,10 @@ var reportViewModel = function (options) {
 
 		e.formulaItems = ko.observableArray(formulaItems);
 		e.setupFormula = new formulaFieldViewModel();
+
+		if (e.isFormulaField()) {
+			self.additionalAggregateOptions(e, e.fieldFormat());
+        }
 
 		e.setupLinkField = function () {
 			self.editLinkField(e);
