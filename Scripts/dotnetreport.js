@@ -1,6 +1,6 @@
 ﻿/// dotnet Report Builder view model v4.3.4
 /// License has to be purchased for use
-/// 2018-2021 (c) www.dotnetreport.com
+/// 2022 (c) www.dotnetreport.com
 function pagerViewModel(args) {
 	args = args || {};
 	var self = this;
@@ -1253,6 +1253,10 @@ var reportViewModel = function (options) {
 	}
 
 	self.SelectedFields.subscribe(function (fields) {
+		setTimeout(function () {
+			self.RemoveInvalidFilters(self.FilterGroups());
+		}, 500);
+
 		var newField = fields.length > 0 ? fields[fields.length - 1] : null;
 		if (newField && (newField.forceFilter || newField.forceFilterForTable)) {
 			if (!self.FindInFilterGroup(newField.fieldId)) {
@@ -1261,7 +1265,7 @@ var reportViewModel = function (options) {
 				setTimeout(function () {
 					newField.forced = true;
 					newFilter.Field(newField);
-				}, 500);
+				}, 250);
 			}
 		}
 
@@ -1374,7 +1378,7 @@ var reportViewModel = function (options) {
 		if (!value) return;
 		var result = self.formulaOnlyHasDateFields();
 		if (result && ['Days', 'Hours', 'Minutes', 'Seconds'].indexOf(self.formulaDataFormat()) < 0) self.formulaDataFormat('Days');
-		if (!result && ['String', 'Integer', 'Double'].indexOf(self.formulaDataFormat()) < 0) self.formulaDataFormat('String');		
+		if (!result && ['String', 'Integer', 'Double'].indexOf(self.formulaDataFormat()) < 0) self.formulaDataFormat('String');
 	});
 
 	self.formulaHasConstantValue = ko.computed(function () {
@@ -1409,10 +1413,10 @@ var reportViewModel = function (options) {
 				response.push("Min");
 				break;
 		}
-	
+
 		field.fieldAggregate = field.fieldAggregate.concat(response);
 		field.fieldAggregateWithDrilldown = field.fieldAggregateWithDrilldown.concat(response);
-    }
+	}
 
 	self.getEmptyFormulaField = function () {
 		return {
@@ -1456,11 +1460,11 @@ var reportViewModel = function (options) {
 
 	self.editFormulaField = function (field) {
 		self.isFormulaField(true);
-		self.formulaFields([]);	
+		self.formulaFields([]);
 
 		if (field.formulaItems().length > 0) {
 			var tableId = _.find(field.formulaItems(), function (x) { return x.tableId() > 0 }).tableId();
-			var match = _.find(self.Tables(), {tableId: tableId});
+			var match = _.find(self.Tables(), { tableId: tableId });
 			if (tableId && match) {
 				self.SelectedTable(match);
 				self.loadTableFields(match).done(function (x) {
@@ -1470,20 +1474,20 @@ var reportViewModel = function (options) {
 						if (!fieldMatch) {
 							var field = self.getEmptyFormulaField();
 							var fieldMatch = self.setupField(Object.assign({}, field));
-                        }
+						}
 						fieldMatch.setupFormula = e;
-						self.formulaFields.push(fieldMatch);						
+						self.formulaFields.push(fieldMatch);
 					});
 
 					self.formulaFieldLabel(field.fieldName);
 					self.formulaDataFormat(field.fieldFormat());
-					self.formulaDecimalPlaces(field.decimalPlaces());	
+					self.formulaDecimalPlaces(field.decimalPlaces());
 				});
-            }
+			}
 		}
 
-		self.SelectedFields.remove(field);		
-    }
+		self.SelectedFields.remove(field);
+	}
 
 	self.saveFormulaField = function () {
 
@@ -1502,7 +1506,7 @@ var reportViewModel = function (options) {
 		});
 
 		var field = self.getEmptyFormulaField();
-		
+
 		self.SelectedFields.push(self.setupField(field));
 		self.clearFormulaField();
 		self.isFormulaField(false);
@@ -1704,15 +1708,30 @@ var reportViewModel = function (options) {
 		self.RunReport(true);
 	};
 
-	self.RemoveInvalidFilters = function (filtergroup) {
+	self.RemoveInvalidFilters = function (filtergroup, parent) {
+		if (!parent) parent = self.FilterGroups()[0];
+		var emptyGroups = [];
 		_.forEach(filtergroup, function (g) {
+			var emptyFilters = [];
 			_.forEach(g.Filters(), function (x, i) {
 				if (x && !x.Field()) {
-					g.RemoveFilter(x);
+					emptyFilters.push(x);
 				}
-				if (i == 0) self.RemoveInvalidFilters(g.FilterGroups());
+				if (i == 0) self.RemoveInvalidFilters(g.FilterGroups(), g);
 			});
+
+			_.forEach(emptyFilters, function (x) {
+				g.RemoveFilter(x);
+			});
+
+			if (g.Filters().length == 0 && g.FilterGroups().length == 0 && !g.isRoot) {
+				emptyGroups.push(g);
+			}
 		});
+
+		_.forEach(emptyGroups, function (g) {
+			parent.RemoveFilterGroup(g);
+		})
 	}
 
 	self.BuildFilterData = function (filtergroup) {
@@ -2035,8 +2054,10 @@ var reportViewModel = function (options) {
 			reportResult.ReportSql(result.ReportSql);
 			self.ReportSeries = reportSeries;
 
-			function matchColumnName(src, dst) {
+			function matchColumnName(src, dst, dbSrc, dbDst) {
 				if (src == dst) return true;
+				if (dbSrc && dbDst && dbSrc == dbDst) return true;
+
 				if (dst.indexOf('(Count)') < 0 && dst.indexOf("(Avg)") < 0 && dst.indexOf("(Sum)") < 0 && dst.indexOf("(Average)") < 0)
 					return false;
 
@@ -2062,7 +2083,7 @@ var reportViewModel = function (options) {
 						e.hideStoredProcColumn = (col ? col.disabled() : true);
 					}
 					else
-						col = _.find(self.SelectedFields(), function (x) { return matchColumnName(x.fieldName, e.ColumnName); });
+						col = _.find(self.SelectedFields(), function (x) { return matchColumnName(x.fieldName, e.ColumnName, x.dbField, e.SqlField); });
 					if (col && col.linkField()) {
 						e.linkItem = col.linkFieldItem.toJs();
 						e.linkField = true;
@@ -2516,8 +2537,8 @@ var reportViewModel = function (options) {
 			self.additionalAggregateOptions(e, e.fieldFormat());
 			e.editFormulaField = function () {
 				self.editFormulaField(e);
-            }
-        }
+			}
+		}
 
 		e.setupLinkField = function () {
 			self.editLinkField(e);
